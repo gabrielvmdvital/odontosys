@@ -1,0 +1,20 @@
+# Executáveis finais e arquivos de build
+bin/
+*.exe
+
+# Arquivos objeto intermediários da compilação
+obj/
+*.o
+
+# Banco de dados local (arquivos CSV gerados dinamicamente na execução)
+database/
+
+# Arquivos de log locais
+logs/
+
+# Arquivos temporários de IDEs (como VS Code ou Visual Studio)
+.vscode/
+.vs/
+*.suo
+*.user
+Thumbs.db
