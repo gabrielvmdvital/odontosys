@@ -12,13 +12,6 @@ typedef struct {
     int age;
 } PatientMetrics;
 
-/**
- * @brief Identificadores de qual métrica física avaliar em cada nó da árvore de decisão.
- */
-typedef enum {
-    HEIGHT, /**< Métrica referente à altura */
-    WEIGHT  /**< Métrica referente ao peso */
-} MetricType;
 
 /**
  * @brief Operadores de comparação suportados na tomada de decisão.
@@ -37,7 +30,6 @@ typedef struct DecisionNode {
     char title[100];                    /**< Título do diagnóstico (se folha) ou descrição do teste (se pergunta) */
     char recommendation[256];           /**< Recomendação de tratamento sugerida (apenas se for nó folha) */
     
-    MetricType metric;                  /**< Tipo da métrica a ser avaliada na condição */
     CompareOperator op;                 /**< Operador de comparação condicional */
     double reference_value;             /**< Valor de referência clínico para o teste */
     
@@ -51,10 +43,9 @@ typedef struct DecisionNode {
 typedef struct {
     int id;                             /**< ID único do registro do prontuário */
     int patient_id;                     /**< ID do paciente relacionado (chave estrangeira) */
-    char date[11];                      /**< Data do pré-diagnóstico (DD/MM/AAAA) */
+    char diag_date[11];                 /**< Data do pré-diagnóstico (DD/MM/AAAA) */
     PatientMetrics collected_metrics;   /**< Métricas coletadas no dia do atendimento */
     char diagnosis[100];                /**< Diagnóstico obtido através da árvore de decisão */
-    char recommendation[256];           /**< Recomendação de tratamento gravada */
 } ClinicalRecord;
 
 /**
