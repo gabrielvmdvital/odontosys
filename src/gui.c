@@ -1,102 +1,178 @@
 #include "gui.h"
-#include <windows.h>
+#include <gtk/gtk.h>
 #include <stdio.h>
 
-static AppState *g_app_state = NULL;
-static HWND g_hwnd_main = NULL;
+// ============================================================================
+// VARIÁVEIS GLOBAIS ESTÁTICAS (Escopo do Arquivo)
+// ============================================================================
+static AppState *g_app_state = NULL;       // Guarda o estado do core do programa
+static GtkApplication *g_gtk_app = NULL;   // Controle do ciclo de vida do GTK
+static GtkWidget *g_stack = NULL;          // O GtkStack global que controlará a troca de telas
+
+// ============================================================================
+// ESTRUTURAS DE DADOS (PONTES DE COMUNICAÇÃO)
+// ============================================================================
+/**
+ * @brief Estrutura que agrupa os componentes da tela de login.
+ * É usada para passar múltiplos dados/componentes para a função de clique do botão.
+ */
+typedef struct {
+    GtkWidget *entry_usuario; // Ponteiro para o campo de texto do usuário
+    GtkWidget *entry_senha;   // Ponteiro para o campo de texto da senha
+} LoginCampos;
+
+// ============================================================================
+// FUNÇÕES DE CALLBACK (EVENTOS)
+// ============================================================================
 
 /**
- * @brief Window Procedure (Tratador de Mensagens da Janela).
- * Gerencia a renderização e o encerramento do programa de forma básica.
+ * @brief Callback disparado quando o botão "Entrar" é clicado.
+ * Esta função captura os textos e faz a transição de tela usando o GtkStack.
  */
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_PAINT: {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            
-            // 1. Preenche o fundo com um cinza claro neutro
-            HBRUSH bgBrush = CreateSolidBrush(RGB(240, 242, 245));
-            FillRect(hdc, &ps.rcPaint, bgBrush);
-            DeleteObject(bgBrush);
-            
-            // 2. Desenha o texto de boas-vindas centralizado
-            SetBkMode(hdc, TRANSPARENT);
-            SetTextColor(hdc, RGB(60, 64, 75));
-            
-            RECT rect;
-            GetClientRect(hwnd, &rect);
-            
-            // Texto demonstrando que este é o esqueleto pronto do projeto
-            DrawTextA(hdc, 
-                      "Projeto C - Interface Grafica Modular (Win32)\n\n"
-                      "Este e o seu esqueleto basico limpo.\n"
-                      "Edite o arquivo src/gui.c e include/gui.h para desenhar seus componentes.",
-                      -1, &rect, 
-                      DT_CENTER | DT_VCENTER | DT_WORDBREAK);
-            
-            EndPaint(hwnd, &ps);
-            return 0;
-        }
-        
-        case WM_DESTROY: {
-            PostQuitMessage(0);
-            return 0;
-        }
-    }
-    return DefWindowProcA(hwnd, uMsg, wParam, lParam);
+static void on_btn_entrar_clicked(GtkButton *btn, gpointer user_data) {
+    // 1. Recuperamos a struct com os campos de texto através do ponteiro genérico
+    LoginCampos *campos = (LoginCampos *)user_data;
+
+    // 2. Extraímos as strings que o usuário digitou
+    const char *usuario = gtk_editable_get_text(GTK_EDITABLE(campos->entry_usuario));
+    const char *senha = gtk_editable_get_text(GTK_EDITABLE(campos->entry_senha));
+
+    // 3. Print de debug no terminal (útil para testes acadêmicos)
+    printf("\n[GUI] Botão Entrar Clicado.\n");
+    printf("[GUI] Usuário inserido: %s\n", usuario);
+    
+    // 4. TRANSIÇÃO DE TELA (O Segredo do GtkStack):
+    // Como o 'g_stack' é global, nós dizemos para ele mudar a página visível 
+    // para a página que batizamos de "dashboard_page".
+    // Sem validação por enquanto, conforme o escopo do Trello.
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
+}
+
+// ============================================================================
+// CONSTRUTORES DE INTERFACES (TELAS)
+// ============================================================================
+
+/**
+ * @brief Constrói e organiza os elementos visuais da Tela de Login.
+ * @return Retorna um GtkWidget (GtkBox) contendo toda a interface de login pronta.
+ */
+static GtkWidget* criar_tela_login(LoginCampos *campos) {
+    // Criamos uma caixa vertical com 10 pixels de espaçamento entre os componentes
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_halign(vbox, GTK_ALIGN_CENTER); // Centraliza horizontalmente na tela
+    gtk_widget_set_valign(vbox, GTK_ALIGN_CENTER); // Centraliza verticalmente na tela
+
+    // Componente Título
+    GtkWidget *lbl_titulo = gtk_label_new("ODONTOSYS");
+    gtk_widget_set_margin_bottom(lbl_titulo, 15); 
+    gtk_box_append(GTK_BOX(vbox), lbl_titulo);
+
+    // Componente Campo Usuário
+    GtkWidget *lbl_usuario = gtk_label_new("Usuário:");
+    gtk_widget_set_halign(lbl_usuario, GTK_ALIGN_START); // Garante alinhamento à esquerda
+    gtk_box_append(GTK_BOX(vbox), lbl_usuario);
+
+    campos->entry_usuario = gtk_entry_new();
+    gtk_widget_set_size_request(campos->entry_usuario, 250, -1); // Define largura de 250px
+    gtk_box_append(GTK_BOX(vbox), campos->entry_usuario);
+
+    // Componente Campo Senha
+    GtkWidget *lbl_senha = gtk_label_new("Senha:");
+    gtk_widget_set_halign(lbl_senha, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), lbl_senha);
+
+    campos->entry_senha = gtk_entry_new();
+    gtk_entry_set_visibility(GTK_ENTRY(campos->entry_senha), FALSE); // Mascara os caracteres (***)
+    gtk_box_append(GTK_BOX(vbox), campos->entry_senha);
+
+    // Componente Botão de Envio
+    GtkWidget *btn_entrar = gtk_button_new_with_label("Entrar");
+    gtk_widget_set_margin_top(btn_entrar, 15);
+    
+    // Conecta o evento de clique do botão à nossa função de callback
+    g_signal_connect(btn_entrar, "clicked", G_CALLBACK(on_btn_entrar_clicked), campos);
+    
+    gtk_box_append(GTK_BOX(vbox), btn_entrar);
+
+    return vbox; // Retorna a caixa completa para ser inserida no Stack
+}
+
+/**
+ * @brief Constrói e organiza o esqueleto da Tela 2 (Dashboard / Painel de Controle).
+ * @return Retorna um GtkWidget (GtkBox) com a estrutura inicial da Dashboard.
+ */
+static GtkWidget* criar_tela_dashboard(void) {
+    // Criamos uma caixa vertical para a estrutura do Painel
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
+    gtk_widget_set_halign(vbox, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(vbox, GTK_ALIGN_CENTER);
+
+    // Título temporário para provar que a troca de tela funcionou
+    GtkWidget *lbl_boas_vindas = gtk_label_new("Bem-vindo ao Dashboard ODONTOSYS!");
+    gtk_box_append(GTK_BOX(vbox), lbl_boas_vindas);
+
+    // Espaço reservado para as outras duas meninas da equipe criarem os botões:
+    // [ Prontuários ], [ Pacientes ], [ Agendamentos ], etc.
+    GtkWidget *lbl_aviso = gtk_label_new("(Espaço reservado para os botões do Painel)");
+    gtk_box_append(GTK_BOX(vbox), lbl_aviso);
+
+    return vbox;
+}
+
+// ============================================================================
+// INICIALIZAÇÃO E FLUXO PRINCIPAL DO GTK
+// ============================================================================
+
+/**
+ * @brief Evento principal de ativação do GTK. Constrói a janela e a pilha de telas.
+ */
+static void on_app_activate(GtkApplication *app, gpointer user_data) {
+    // Instancia a estrutura dos campos de forma estática para persistir na memória do app
+    static LoginCampos campos;
+
+    // 1. Criação da janela principal do Windows
+    GtkWidget *window = gtk_application_window_new(app);
+    gtk_window_set_title(GTK_WINDOW(window), "ODONTOSYS");
+    gtk_window_set_default_size(GTK_WINDOW(window), 500, 400);
+
+    // 2. Criação do componente GtkStack (Gerenciador de Empilhamento de Telas)
+    g_stack = gtk_stack_new();
+    
+    // Configura uma animação de transição suave (deslizar para os lados) ao mudar de tela
+    gtk_stack_set_transition_type(GTK_STACK(g_stack), GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
+    gtk_stack_set_transition_duration(GTK_STACK(g_stack), 300); // 300 milissegundos de efeito
+
+    // 3. Construção das telas independentes
+    GtkWidget *layout_login = criar_tela_login(&campos);
+    GtkWidget *layout_dashboard = criar_tela_dashboard();
+
+    // 4. Adicionando as telas dentro do Stack e dando um "nome" de identificação para cada uma
+    gtk_stack_add_named(GTK_STACK(g_stack), layout_login, "login_page");
+    gtk_stack_add_named(GTK_STACK(g_stack), layout_dashboard, "dashboard_page");
+
+    // 5. Define qual página o Stack deve exibir assim que o programa abrir
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "login_page");
+
+    // 6. Define o GtkStack como o filho principal (conteúdo) da nossa janela
+    gtk_window_set_child(GTK_WINDOW(window), g_stack);
+
+    // 7. Renderiza a janela na tela do usuário
+    gtk_window_present(GTK_WINDOW(window));
 }
 
 bool gui_init(AppState *app_state) {
     if (app_state == NULL) return false;
     g_app_state = app_state;
-    
-    HINSTANCE hInstance = GetModuleHandle(NULL);
-    
-    // Registrando a classe de janela
-    WNDCLASSEXA wc = {0};
-    wc.cbSize = sizeof(WNDCLASSEXA);
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = "CModularGUIClass";
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hbrBackground = NULL; // Evita cintilações redesenhando no WM_PAINT
-    
-    if (!RegisterClassExA(&wc)) {
-        return false;
-    }
-    
-    // Dimensões padrão 800x600 centralizado
-    int largura = 800;
-    int altura = 600;
-    int x = (GetSystemMetrics(SM_CXSCREEN) - largura) / 2;
-    int y = (GetSystemMetrics(SM_CYSCREEN) - altura) / 2;
-    
-    g_hwnd_main = CreateWindowExA(
-        0,
-        "CModularGUIClass",
-        "Projeto C - Interface Grafica Modular",
-        WS_OVERLAPPEDWINDOW,
-        x, y, largura, altura,
-        NULL, NULL,
-        hInstance, NULL
-    );
-    
-    if (g_hwnd_main == NULL) {
-        return false;
-    }
-    
-    ShowWindow(g_hwnd_main, SW_SHOW);
-    UpdateWindow(g_hwnd_main);
-    
+
+    g_gtk_app = gtk_application_new("com.odontosys.app", G_APPLICATION_DEFAULT_FLAGS);
+    g_signal_connect(g_gtk_app, "activate", G_CALLBACK(on_app_activate), NULL);
+
     return true;
 }
 
 void gui_run(void) {
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+    if (g_gtk_app != NULL) {
+        g_application_run(G_APPLICATION(g_gtk_app), 0, NULL);
+        g_object_unref(g_gtk_app);
     }
 }
