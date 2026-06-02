@@ -85,11 +85,11 @@ static GtkWidget* criar_tela_login(LoginCampos *campos) {
     gtk_entry_set_visibility(GTK_ENTRY(campos->entry_senha), FALSE); // Mascara os caracteres (***)
     gtk_box_append(GTK_BOX(vbox), campos->entry_senha);
 
-    // Componente Botão de Envio
+    // Area do Botão de Envio
     GtkWidget *btn_entrar = gtk_button_new_with_label("Entrar");
     gtk_widget_set_margin_top(btn_entrar, 15);
     
-    // Conecta o evento de clique do botão à nossa função de callback
+    // Conecta o evento de clique do botão à nossa função de callback 
     g_signal_connect(btn_entrar, "clicked", G_CALLBACK(on_btn_entrar_clicked), campos);
     
     gtk_box_append(GTK_BOX(vbox), btn_entrar);
