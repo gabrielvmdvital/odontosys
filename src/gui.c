@@ -76,7 +76,7 @@ static GtkWidget* criar_tela_login(LoginCampos *campos) {
     gtk_widget_set_size_request(campos->entry_usuario, 250, -1); // Define largura de 250px
     gtk_box_append(GTK_BOX(vbox), campos->entry_usuario);
 
-    // Componente Campo Senha
+    // Componente  Campo Senha
     GtkWidget *lbl_senha = gtk_label_new("Senha:");
     gtk_widget_set_halign(lbl_senha, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(vbox), lbl_senha);
