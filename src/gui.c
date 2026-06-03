@@ -48,6 +48,27 @@ static void on_btn_entrar_clicked(GtkButton *btn, gpointer user_data) {
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
 }
 
+/**
+ * @brief Callback disparado quando o botão "Sair" da Dashboard é clicado.
+ * Faz o GtkStack reverter a animação de volta para a tela de login.
+ */
+static void on_btn_sair_clicked(GtkButton *btn, gpointer user_data) {
+    printf("[GUI] Usuário deslogou da sessão. Retornando ao Login...\n");
+    
+    // Faz o Stack exibir a tela de login novamente com animação reversa automática
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "login_page");
+}
+
+/**
+ * @brief Callback temporário para os botões do menu interno.
+ */
+static void on_menu_button_clicked(GtkButton *btn, gpointer user_data) {
+    const char *label = gtk_button_get_label(btn);
+    printf("[GUI] Botão do menu clicado: %s (Espaço reservado para a equipe)\n", label);
+    
+    // [FUTURAMENTE AQUI MANDAREMOS O STACK EXIBIR A TELA 3 DE PRONTUÁRIOS]
+}
+
 // ============================================================================
 // CONSTRUTORES DE INTERFACES (TELAS)
 // ============================================================================
@@ -98,23 +119,45 @@ static GtkWidget* criar_tela_login(LoginCampos *campos) {
 }
 
 /**
- * @brief Constrói e organiza o esqueleto da Tela 2 (Dashboard / Painel de Controle).
- * @return Retorna um GtkWidget (GtkBox) com a estrutura inicial da Dashboard.
+ * @brief Constrói e organiza a interface real da Tela 2 (Dashboard / Painel de Controle).
+ * @return Retorna um GtkWidget (GtkBox) com o menu principal ajustado sem agendamentos.
  */
 static GtkWidget* criar_tela_dashboard(void) {
-    // Criamos uma caixa vertical para a estrutura do Painel
+    // 1. Criamos a caixa vertical principal com 15 pixels de espaçamento
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
     gtk_widget_set_halign(vbox, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(vbox, GTK_ALIGN_CENTER);
 
-    // Título temporário para provar que a troca de tela funcionou
-    GtkWidget *lbl_boas_vindas = gtk_label_new("Bem-vindo ao Dashboard ODONTOSYS!");
-    gtk_box_append(GTK_BOX(vbox), lbl_boas_vindas);
+    // 2. Título do Painel de Controle
+    GtkWidget *lbl_painel = gtk_label_new("ODONTOSYS - Painel Principal");
+    gtk_widget_set_margin_bottom(lbl_painel, 20);
+    gtk_box_append(GTK_BOX(vbox), lbl_painel);
 
-    // Espaço reservado para as outras duas meninas da equipe criarem os botões:
-    // [ Prontuários ], [ Pacientes ], [ Agendamentos ], etc.
-    GtkWidget *lbl_aviso = gtk_label_new("(Espaço reservado para os botões do Painel)");
-    gtk_box_append(GTK_BOX(vbox), lbl_aviso);
+    // 3. Criando apenas os botões de funcionalidades reais do escopo acordado
+    GtkWidget *btn_prontuarios = gtk_button_new_with_label("📁 Gerenciar Prontuários");
+    GtkWidget *btn_pacientes = gtk_button_new_with_label("👥 Cadastrar Pacientes");
+
+    // Definindo o tamanho padrão idêntico para simetria visual
+    gtk_widget_set_size_request(btn_prontuarios, 250, 40);
+    gtk_widget_set_size_request(btn_pacientes, 250, 40);
+
+    // Conectando os botões ao callback de clique do menu
+    g_signal_connect(btn_prontuarios, "clicked", G_CALLBACK(on_menu_button_clicked), NULL);
+    g_signal_connect(btn_pacientes, "clicked", G_CALLBACK(on_menu_button_clicked), NULL);
+
+    // Empacotando os botões na caixa vertical
+    gtk_box_append(GTK_BOX(vbox), btn_prontuarios);
+    gtk_box_append(GTK_BOX(vbox), btn_pacientes);
+
+    // 4. Criando o Botão "Sair" com destaque inferior
+    GtkWidget *btn_sair = gtk_button_new_with_label("🚪 Sair do Sistema");
+    gtk_widget_set_size_request(btn_sair, 250, 40);
+    gtk_widget_set_margin_top(btn_sair, 25); // Margem para separar visualmente das funções
+    
+    // Conecta o evento de clique para reverter para a tela de login
+    g_signal_connect(btn_sair, "clicked", G_CALLBACK(on_btn_sair_clicked), NULL);
+    
+    gtk_box_append(GTK_BOX(vbox), btn_sair);
 
     return vbox;
 }
@@ -146,7 +189,7 @@ static void on_app_activate(GtkApplication *app, gpointer user_data) {
     GtkWidget *layout_login = criar_tela_login(&campos);
     GtkWidget *layout_dashboard = criar_tela_dashboard();
 
-    // 4. Adicionando as telas dentro do Stack e dando um "nome" de identificação para cada uma
+    // 4. Adicionando as telas dentro do Stack e dando um "nome" de identificación para cada uma
     gtk_stack_add_named(GTK_STACK(g_stack), layout_login, "login_page");
     gtk_stack_add_named(GTK_STACK(g_stack), layout_dashboard, "dashboard_page");
 
