@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "app.h"
 #include "gui.h"
+#include "clinical.h"
 
 int main(void) {
     printf("[INICIALIZACAO] Iniciando aplicacao modular em C...\n");
