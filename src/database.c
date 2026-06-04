@@ -68,12 +68,23 @@ int save_user(User *user) {
         return 0;
     }
 
-    // Formato CSV: id;nome;email;cpf;altura;peso
-    fprintf(file, "%d;%s;%s;%s;%.2f;%.2f\n", 
+    // Formato CSV: id;nome;email;cpf;data_nascimento;altura;peso
+    fprintf(file, "%d;%s;%s;%s;%s;%.2f;%.2f\n", 
             user->id, 
             user->name, 
             user->email, 
             user->cpf, 
+            user->birth_date,
+            user->metrics.height, 
+            user->metrics.weight);
+    fclose(file);
+    log_message(LOG_INFO, "Usuario cadastrado no CSV com sucesso: %s (ID: %d)", user->name, user->id);
+    update_cached_user_count(1);
+    return 1;
+}
+
+User find_user_by_cpf(const char *cpf) {
+            user->birth_date,
             user->metrics.height, 
             user->metrics.weight);
     fclose(file);
@@ -92,23 +103,24 @@ User find_user_by_cpf(const char *cpf) {
     }
 
     char line[512];
-    char *fields[6];
+    char *fields[7];
     while (fgets(line, sizeof(line), file)) {
         if (line[0] == '\n' || line[0] == '\r') continue;
 
         char line_copy[512];
         strcpy(line_copy, line);
 
-        int cols = split_csv_line(line_copy, fields, 6);
-        if (cols < 6) continue;
+        int cols = split_csv_line(line_copy, fields, 7);
+        if (cols < 7) continue;
 
         if (strcmp(fields[3], cpf) == 0) {
             found.id = atoi(fields[0]);
             strcpy(found.name, fields[1]);
             strcpy(found.email, fields[2]);
             strcpy(found.cpf, fields[3]);
-            found.metrics.height = atof(fields[4]);
-            found.metrics.weight = atof(fields[5]);
+            strcpy(found.birth_date, fields[4]);
+            found.metrics.height = atof(fields[5]);
+            found.metrics.weight = atof(fields[6]);
             break;
         }
     }
@@ -127,23 +139,24 @@ User find_user_by_id(int user_id) {
     }
 
     char line[512];
-    char *fields[6];
+    char *fields[7];
     while (fgets(line, sizeof(line), file)) {
         if (line[0] == '\n' || line[0] == '\r') continue;
 
         char line_copy[512];
         strcpy(line_copy, line);
 
-        int cols = split_csv_line(line_copy, fields, 6);
-        if (cols < 6) continue;
+        int cols = split_csv_line(line_copy, fields, 7);
+        if (cols < 7) continue;
 
         if (atoi(fields[0]) == user_id) {
             found.id = atoi(fields[0]);
             strcpy(found.name, fields[1]);
             strcpy(found.email, fields[2]);
             strcpy(found.cpf, fields[3]);
-            found.metrics.height = atof(fields[4]);
-            found.metrics.weight = atof(fields[5]);
+            strcpy(found.birth_date, fields[4])
+            found.metrics.height = atof(fields[5]);
+            found.metrics.weight = atof(fields[6]);
             break;
         }
     }
@@ -175,7 +188,7 @@ int update_user(int user_id, User *user) {
 
     char line[512];
     char line_copy[512];
-    char *fields[6];
+    char *fields[7];
     int updated = 0;
 
     while (fgets(line, sizeof(line), src)) {
@@ -185,14 +198,15 @@ int update_user(int user_id, User *user) {
         }
 
         strcpy(line_copy, line);
-        int cols = split_csv_line(line_copy, fields, 6);
+        int cols = split_csv_line(line_copy, fields, 7);
 
-        if (cols >= 6 && atoi(fields[0]) == user_id) {
+        if (cols >= 7 && atoi(fields[0]) == user_id) {
             fprintf(dest, "%d;%s;%s;%s;%.2f;%.2f\n", 
                     user->id, 
                     user->name, 
                     user->email, 
                     user->cpf, 
+                    user->birth_date;
                     user->metrics.height, 
                     user->metrics.weight);
             updated = 1;
@@ -230,7 +244,7 @@ int delete_user(int user_id) {
 
     char line[512];
     char line_copy[512];
-    char *fields[6];
+    char *fields[7];
     int deleted = 0;
 
     while (fgets(line, sizeof(line), src)) {
@@ -240,9 +254,9 @@ int delete_user(int user_id) {
         }
 
         strcpy(line_copy, line);
-        int cols = split_csv_line(line_copy, fields, 6);
+        int cols = split_csv_line(line_copy, fields, 7);
 
-        if (cols >= 6 && atoi(fields[0]) == user_id) {
+        if (cols >= 7 && atoi(fields[0]) == user_id) {
             deleted = 1;
         } else {
             fprintf(dest, "%s", line);
@@ -423,7 +437,7 @@ User* get_all_users(int *total_count) {
     }
 
     char line[512];
-    char *fields[6];
+    char *fields[7];
     int current = 0;
 
     while (fgets(line, sizeof(line), file) && current < count) {
@@ -432,15 +446,16 @@ User* get_all_users(int *total_count) {
         char line_copy[512];
         strcpy(line_copy, line);
 
-        int cols = split_csv_line(line_copy, fields, 6);
-        if (cols < 6) continue;
+        int cols = split_csv_line(line_copy, fields, 7);
+        if (cols < 7) continue;
 
         users[current].id = atoi(fields[0]);
         strcpy(users[current].name, fields[1]);
         strcpy(users[current].email, fields[2]);
         strcpy(users[current].cpf, fields[3]);
-        users[current].metrics.height = atof(fields[4]);
-        users[current].metrics.weight = atof(fields[5]);
+        strcpy(users[currente].birth_date, fields[4])
+        users[current].metrics.height = atof(fields[5]);
+        users[current].metrics.weight = atof(fields[6]);
         current++;
     }
 
