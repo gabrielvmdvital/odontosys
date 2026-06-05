@@ -30,11 +30,34 @@ static int split_csv_line(char *line, char **fields, int max_fields) {
 void database_init(void) {
     // Cria a pasta "database" na raiz do projeto se ela não existir.
     CreateDirectoryA("database", NULL);
-    log_message(LOG_INFO, "Banco de dados inicializado (diretorio 'database' verificado/criado).");
+
+    FILE *fp = fopen(PATIENT_FILE, "r");
+    if (!fp) {
+        fp = fopen(PATIENT_FILE, "w");
+        if (fp) {
+            fprintf(fp, "id;nome;email;cpf;data_nascimento;altura;peso\n");
+            fclose(fp);
+        }
+    } else {
+        fclose(fp);
+    }
+
+    FILE *fc = fopen(CLINICAL_FILE, "r");
+    if (!fc) {
+        fc = fopen(CLINICAL_FILE, "w");
+        if (fc) {
+            fprintf(fc, "id;patient_id;diag_date;altura;peso;idade;anb;coa;co_gn;afai;sn_go_gn;na1_dist;na1_ang;na2_dist;na2_ang;perf_tegument;pre_diagnostico\n");
+            fclose(fc);
+        }
+    } else {
+        fclose(fc);
+    }
+
+    log_message(LOG_INFO, "Banco de dados inicializado.");
 }
 
-int get_cached_user_count(void) {
-    FILE *f = fopen(USER_COUNT_FILE, "r");
+int get_cached_patient_count(void) {
+    FILE *f = fopen(PATIENT_COUNT_FILE, "r");
     if (!f) return 0;
     int count = 0;
     fscanf(f, "%d", &count);
@@ -42,62 +65,53 @@ int get_cached_user_count(void) {
     return count;
 }
 
-void update_cached_user_count(int delta) {
-    int count = get_cached_user_count();
+void update_cached_patient_count(int delta) {
+    int count = get_cached_patient_count();
     count += delta;
     if (count < 0) count = 0;
-    FILE *f = fopen(USER_COUNT_FILE, "w");
+    FILE *f = fopen(PATIENT_COUNT_FILE, "w");
     if (f) {
         fprintf(f, "%d", count);
         fclose(f);
     }
 }
 
-int save_user(User *user) {
+int save_patient(Patient *patient) {
     database_init();
 
-    User existing = find_user_by_cpf(user->cpf);
+    Patient existing = find_patient_by_cpf(patient->cpf);
     if (existing.id != -1) {
-        log_message(LOG_WARNING, "Falha ao salvar: ja existe um usuario com o CPF %s.", user->cpf);
+        log_message(LOG_WARNING, "Falha ao salvar: ja existe um paciente com o CPF %s.", patient->cpf);
         return 0;
     }
 
-    FILE *file = fopen(USER_FILE, "a");
+    FILE *file = fopen(PATIENT_FILE, "a");
     if (file == NULL) {
-        log_message(LOG_ERROR, "Nao foi possivel abrir o arquivo %s para salvar o usuario.", USER_FILE);
+        log_message(LOG_ERROR, "Nao foi possivel abrir o arquivo %s para salvar o paciente.", PATIENT_FILE);
         return 0;
     }
 
     // Formato CSV: id;nome;email;cpf;data_nascimento;altura;peso
     fprintf(file, "%d;%s;%s;%s;%s;%.2f;%.2f\n", 
-            user->id, 
-            user->name, 
-            user->email, 
-            user->cpf, 
-            user->birth_date,
-            user->metrics.height, 
-            user->metrics.weight);
+            patient->id, 
+            patient->name, 
+            patient->email, 
+            patient->cpf, 
+            patient->birth_date,
+            patient->metrics.height, 
+            patient->metrics.weight);
     fclose(file);
-    log_message(LOG_INFO, "Usuario cadastrado no CSV com sucesso: %s (ID: %d)", user->name, user->id);
-    update_cached_user_count(1);
+    log_message(LOG_INFO, "Paciente cadastrado no CSV com sucesso: %s (ID: %d)", patient->name, patient->id);
+    update_cached_patient_count(1);
     return 1;
 }
 
-User find_user_by_cpf(const char *cpf) {
-            user->birth_date,
-            user->metrics.height, 
-            user->metrics.weight);      // ANALISAR ERRO !!!!!!
-    fclose(file);
-    log_message(LOG_INFO, "Usuario cadastrado no CSV com sucesso: %s (ID: %d)", user->name, user->id);
-    update_cached_user_count(1);
-    return 1;
-}
-
-User find_user_by_cpf(const char *cpf) {
-    User found;
+Patient find_patient_by_cpf(const char *cpf) {
+    Patient found;
+    memset(&found, 0, sizeof(Patient));
     found.id = -1;
 
-    FILE *file = fopen(USER_FILE, "r");
+    FILE *file = fopen(PATIENT_FILE, "r");
     if (file == NULL) {
         return found;
     }
@@ -106,6 +120,9 @@ User find_user_by_cpf(const char *cpf) {
     char *fields[7];
     while (fgets(line, sizeof(line), file)) {
         if (line[0] == '\n' || line[0] == '\r') continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
 
         char line_copy[512];
         strcpy(line_copy, line);
@@ -129,11 +146,11 @@ User find_user_by_cpf(const char *cpf) {
     return found;
 }
 
-User find_user_by_id(int user_id) {
-    User found;
+Patient find_patient_by_id(int patient_id) {
+    Patient found;
     found.id = -1;
 
-    FILE *file = fopen(USER_FILE, "r");
+    FILE *file = fopen(PATIENT_FILE, "r");
     if (file == NULL) {
         return found;
     }
@@ -142,6 +159,9 @@ User find_user_by_id(int user_id) {
     char *fields[7];
     while (fgets(line, sizeof(line), file)) {
         if (line[0] == '\n' || line[0] == '\r') continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
 
         char line_copy[512];
         strcpy(line_copy, line);
@@ -149,7 +169,7 @@ User find_user_by_id(int user_id) {
         int cols = split_csv_line(line_copy, fields, 7);
         if (cols < 7) continue;
 
-        if (atoi(fields[0]) == user_id) {
+        if (atoi(fields[0]) == patient_id) {
             found.id = atoi(fields[0]);
             strcpy(found.name, fields[1]);
             strcpy(found.email, fields[2]);
@@ -165,23 +185,23 @@ User find_user_by_id(int user_id) {
     return found;
 }
 
-int update_user(int user_id, User *user) {
+int update_patient(int patient_id, Patient *patient) {
 
-    User existing = find_user_by_cpf(user->cpf);
-    if (existing.id != -1 && existing.id != user_id) {
-        log_message(LOG_WARNING, "Falha ao atualizar: ja existe outro usuario com o CPF %s.", user->cpf);
+    Patient existing = find_patient_by_cpf(patient->cpf);
+    if (existing.id != -1 && existing.id != patient_id) {
+        log_message(LOG_WARNING, "Falha ao atualizar: ja existe outro paciente com o CPF %s.", patient->cpf);
         return 0;
     }
 
-    FILE *src = fopen(USER_FILE, "r");
+    FILE *src = fopen(PATIENT_FILE, "r");
     if (src == NULL) {
-        log_message(LOG_WARNING, "Tentativa de atualizar usuario ID %d, mas %s nao existe.", user_id, USER_FILE);
+        log_message(LOG_WARNING, "Tentativa de atualizar paciente ID %d, mas %s nao existe.", patient_id, PATIENT_FILE);
         return 0;
     }
 
-    FILE *dest = fopen("database/usuarios.tmp", "w");
+    FILE *dest = fopen("database/pacientes.tmp", "w");
     if (dest == NULL) {
-        log_message(LOG_ERROR, "Nao foi possivel criar o arquivo temporario database/usuarios.tmp para atualizacao.");
+        log_message(LOG_ERROR, "Nao foi possivel criar o arquivo temporario database/pacientes.tmp para atualizacao.");
         fclose(src);
         return 0;
     }
@@ -200,15 +220,15 @@ int update_user(int user_id, User *user) {
         strcpy(line_copy, line);
         int cols = split_csv_line(line_copy, fields, 7);
 
-        if (cols >= 7 && atoi(fields[0]) == user_id) {
-            fprintf(dest, "%d;%s;%s;%s;%.2f;%.2f\n", 
-                    user->id, 
-                    user->name, 
-                    user->email, 
-                    user->cpf, 
-                    user->birth_date,
-                    user->metrics.height, 
-                    user->metrics.weight);
+        if (cols >= 7 && atoi(fields[0]) == patient_id) {
+            fprintf(dest, "%d;%s;%s;%s;%s;%.2f;%.2f\n", 
+                    patient->id, 
+                    patient->name, 
+                    patient->email, 
+                    patient->cpf, 
+                    patient->birth_date,
+                    patient->metrics.height, 
+                    patient->metrics.weight);
             updated = 1;
         } else {
             fprintf(dest, "%s", line);
@@ -218,25 +238,25 @@ int update_user(int user_id, User *user) {
     fclose(src);
     fclose(dest);
 
-    remove(USER_FILE);
-    rename("database/usuarios.tmp", USER_FILE);
+    remove(PATIENT_FILE);
+    rename("database/pacientes.tmp", PATIENT_FILE);
 
     if (updated) {
-        log_message(LOG_INFO, "Usuario ID %d (%s) atualizado com sucesso no CSV.", user_id, user->name);
+        log_message(LOG_INFO, "Paciente ID %d (%s) atualizado com sucesso no CSV.", patient_id, patient->name);
     } else {
-        log_message(LOG_WARNING, "Nenhum usuario correspondente ao ID %d encontrado para atualizacao no CSV.", user_id);
+        log_message(LOG_WARNING, "Nenhum paciente correspondente ao ID %d encontrado para atualizacao no CSV.", patient_id);
     }
 
     return updated;
 }
 
-int delete_user(int user_id) {
-    FILE *src = fopen(USER_FILE, "r");
+int delete_patient(int patient_id) {
+    FILE *src = fopen(PATIENT_FILE, "r");
     if (src == NULL) {
         return 0;
     }
 
-    FILE *dest = fopen(USER_FILE_TEMP, "w");
+    FILE *dest = fopen(PATIENT_FILE_TEMP, "w");
     if (dest == NULL) {
         fclose(src);
         return 0;
@@ -256,7 +276,7 @@ int delete_user(int user_id) {
         strcpy(line_copy, line);
         int cols = split_csv_line(line_copy, fields, 7);
 
-        if (cols >= 7 && atoi(fields[0]) == user_id) {
+        if (cols >= 7 && atoi(fields[0]) == patient_id) {
             deleted = 1;
         } else {
             fprintf(dest, "%s", line);
@@ -266,15 +286,15 @@ int delete_user(int user_id) {
     fclose(src);
     fclose(dest);
 
-    remove(USER_FILE);
-    rename(USER_FILE_TEMP, USER_FILE);
+    remove(PATIENT_FILE);
+    rename(PATIENT_FILE_TEMP, PATIENT_FILE);
 
     if (deleted) {
-        log_message(LOG_INFO, "Usuario ID %d removido do CSV com sucesso.", user_id);
-        update_cached_user_count(-1);
+        log_message(LOG_INFO, "Paciente ID %d removido do CSV com sucesso.", patient_id);
+        update_cached_patient_count(-1);
 
         // Remove todos os prontuários associados a este usuário
-        delete_clinical_records_by_patient(user_id);
+        delete_clinical_records_by_patient(patient_id);
     }
 
     return deleted;
@@ -294,7 +314,7 @@ int delete_clinical_records_by_patient(int patient_id) {
 
     char cl_line[512];
     char cl_line_copy[512];
-    char *cl_fields[7];
+    char *cl_fields[17];
     int cl_deleted_count = 0;
 
     while (fgets(cl_line, sizeof(cl_line), cl_src)) {
@@ -304,9 +324,9 @@ int delete_clinical_records_by_patient(int patient_id) {
         }
 
         strcpy(cl_line_copy, cl_line);
-        int cl_cols = split_csv_line(cl_line_copy, cl_fields, 7);
+        int cl_cols = split_csv_line(cl_line_copy, cl_fields, 17);
 
-        if (cl_cols >= 7 && atoi(cl_fields[1]) == patient_id) {
+        if (cl_cols >= 17 && atoi(cl_fields[1]) == patient_id) {
             cl_deleted_count++;
         } else {
             fprintf(cl_dest, "%s", cl_line);
@@ -329,7 +349,7 @@ int delete_clinical_records_by_patient(int patient_id) {
 int save_clinical_record(ClinicalRecord *record) {
     database_init();
 
-    User patient = find_user_by_id(record->patient_id);
+    Patient patient = find_patient_by_id(record->patient_id);
     if (patient.id == -1) {
         log_message(LOG_ERROR, "Impossivel criar prontuario: Paciente ID %d nao existe.", record->patient_id);
         return 0;
@@ -341,15 +361,26 @@ int save_clinical_record(ClinicalRecord *record) {
         return 0;
     }
 
-    // Formato CSV do prontuário: id;patient_id;data;altura;peso;diagnostico;recomendacao
-    fprintf(file, "%d;%d;%s;%.2f;%.2f;%s;%s\n", 
-            record->id, 
-            record->patient_id, 
-            record->diag_date, 
-            record->collected_metrics.height, 
-            record->collected_metrics.weight, 
-            record->diagnosis); 
-            //record->recommendation); // Não vai precisar de recomendação 
+    // Formato CSV do prontuário: id;patient_id;data;altura;peso;idade;anb;coa;co_gn;afai;sn_go_gn;na1_dist;na1_ang;na2_dist;na2_ang;perf_tegument;pre_diagnostico
+    fprintf(file, "%d;%d;%s;%.2f;%.2f;%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%s;%s\n", 
+        record->id, 
+        record->patient_id, 
+        record->diag_date, 
+        record->collected_metrics.height, 
+        record->collected_metrics.weight, 
+        record->collected_metrics.age,
+        record->anb,
+        record->coa,
+        record->co_gn,
+        record->afai,
+        record->sn_go_gn,
+        record->na1_dist,
+        record->na1_ang,
+        record->na2_dist,
+        record->na2_ang,
+        record->perf_tegument,
+        record->pre_diagnosis
+    );
 
     fclose(file);
     log_message(LOG_INFO, "Prontuario ID %d adicionado no CSV para Paciente ID %d.", record->id, record->patient_id);
@@ -364,15 +395,18 @@ ClinicalRecord* load_clinical_records(int patient_id, int *total_count) {
     }
 
     char line[512];
-    char *fields[7];
+    char *fields[17];
     int count = 0;
 
     while (fgets(line, sizeof(line), file)) {
         if (line[0] == '\n' || line[0] == '\r') continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
         char line_copy[512];
         strcpy(line_copy, line);
-        int cols = split_csv_line(line_copy, fields, 7);
-        if (cols >= 7 && atoi(fields[1]) == patient_id) {
+        int cols = split_csv_line(line_copy, fields, 17);
+        if (cols >= 17 && atoi(fields[1]) == patient_id) {
             count++;
         }
     }
@@ -393,12 +427,13 @@ ClinicalRecord* load_clinical_records(int patient_id, int *total_count) {
 
     while (fgets(line, sizeof(line), file) && current < count) {
         if (line[0] == '\n' || line[0] == '\r') continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
 
         char line_copy[512];
         strcpy(line_copy, line);
 
-        int cols = split_csv_line(line_copy, fields, 7);
-        if (cols < 7) continue;
+        int cols = split_csv_line(line_copy, fields, 17);
+        if (cols < 17) continue;
 
         if (atoi(fields[1]) == patient_id) {
             records[current].id = atoi(fields[0]);
@@ -406,8 +441,18 @@ ClinicalRecord* load_clinical_records(int patient_id, int *total_count) {
             strcpy(records[current].diag_date, fields[2]);
             records[current].collected_metrics.height = atof(fields[3]);
             records[current].collected_metrics.weight = atof(fields[4]);
-            strcpy(records[current].diagnosis, fields[5]);
-            // strcpy(records[current].recommendation, fields[6]); Não vamos precisar de recomendação
+            records[current].collected_metrics.age = atoi(fields[5]);
+            records[current].anb = atof(fields[6]);
+            records[current].coa = atof(fields[7]);
+            records[current].co_gn = atof(fields[8]);
+            records[current].afai = atof(fields[9]);
+            records[current].sn_go_gn = atof(fields[10]);
+            records[current].na1_dist = atof(fields[11]);
+            records[current].na1_ang = atof(fields[12]);
+            records[current].na2_dist = atof(fields[13]);
+            records[current].na2_ang = atof(fields[14]);
+            strcpy(records[current].perf_tegument, fields[15]);
+            strcpy(records[current].pre_diagnosis, fields[16]);
             current++;
         }
     }
@@ -417,21 +462,21 @@ ClinicalRecord* load_clinical_records(int patient_id, int *total_count) {
     return records;
 }
 
-User* get_all_users(int *total_count) {
+Patient* get_all_patients(int *total_count) {
     *total_count = 0;
 
-    int count = get_cached_user_count();
+    int count = get_cached_patient_count();
     if (count == 0) {
         return NULL;
     }
 
-    FILE *file = fopen(USER_FILE, "r");
+    FILE *file = fopen(PATIENT_FILE, "r");
     if (file == NULL) {
         return NULL; 
     }
 
-    User *users = malloc(count * sizeof(User));
-    if (users == NULL) {
+    Patient *patients = malloc(count * sizeof(Patient));
+    if (patients == NULL) {
         fclose(file);
         return NULL;
     }
@@ -442,6 +487,7 @@ User* get_all_users(int *total_count) {
 
     while (fgets(line, sizeof(line), file) && current < count) {
         if (line[0] == '\n' || line[0] == '\r') continue;
+        if (strncmp(line, "id;", 3) == 0) continue;
 
         char line_copy[512];
         strcpy(line_copy, line);
@@ -449,17 +495,17 @@ User* get_all_users(int *total_count) {
         int cols = split_csv_line(line_copy, fields, 7);
         if (cols < 7) continue;
 
-        users[current].id = atoi(fields[0]);
-        strcpy(users[current].name, fields[1]);
-        strcpy(users[current].email, fields[2]);
-        strcpy(users[current].cpf, fields[3]);
-        strcpy(users[current].birth_date, fields[4]);
-        users[current].metrics.height = atof(fields[5]);
-        users[current].metrics.weight = atof(fields[6]);
+        patients[current].id = atoi(fields[0]);
+        strcpy(patients[current].name, fields[1]);
+        strcpy(patients[current].email, fields[2]);
+        strcpy(patients[current].cpf, fields[3]);
+        strcpy(patients[current].birth_date, fields[4]);
+        patients[current].metrics.height = atof(fields[5]);
+        patients[current].metrics.weight = atof(fields[6]);
         current++;
     }
 
     fclose(file);
     *total_count = current;
-    return users;
+    return patients;
 }

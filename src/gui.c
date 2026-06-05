@@ -1,6 +1,7 @@
 #include "gui.h"
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include "logs.h"
 
 // ============================================================================
 // VARIÁVEIS GLOBAIS ESTÁTICAS (Escopo do Arquivo)
@@ -38,8 +39,8 @@ static void on_btn_entrar_clicked(GtkButton *btn, gpointer user_data) {
     const char *senha = gtk_editable_get_text(GTK_EDITABLE(campos->entry_senha));
 
     // 3. Print de debug no terminal (útil para testes acadêmicos)
-    printf("\n[GUI] Botão Entrar Clicado.\n");
-    printf("[GUI] Usuário inserido: %s\n", usuario);
+    log_message(LOG_INFO, "[GUI] Botão Entrar Clicado.");
+    log_message(LOG_INFO, "[GUI] Usuário inserido: %s", usuario);
     
     // 4. TRANSIÇÃO DE TELA (O Segredo do GtkStack):
     // Como o 'g_stack' é global, nós dizemos para ele mudar a página visível 
@@ -53,7 +54,7 @@ static void on_btn_entrar_clicked(GtkButton *btn, gpointer user_data) {
  * Faz o GtkStack reverter a animação de volta para a tela de login.
  */
 static void on_btn_sair_clicked(GtkButton *btn, gpointer user_data) {
-    printf("[GUI] Usuário deslogou da sessão. Retornando ao Login...\n");
+    log_message(LOG_INFO, "[GUI] Usuário deslogou da sessão. Retornando ao Login...");
     
     // Faz o Stack exibir a tela de login novamente com animação reversa automática
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "login_page");
@@ -64,7 +65,7 @@ static void on_btn_sair_clicked(GtkButton *btn, gpointer user_data) {
  */
 static void on_menu_button_clicked(GtkButton *btn, gpointer user_data) {
     const char *label = gtk_button_get_label(btn);
-    printf("[GUI] Botão do menu clicado: %s\n", label);
+    log_message(LOG_INFO, "[GUI] Botão do menu clicado: %s", label);
 
     if (g_str_has_prefix(label, "📁")) {
         gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "prontuarios_page");
@@ -80,7 +81,7 @@ static void on_menu_button_clicked(GtkButton *btn, gpointer user_data) {
  * Faz o GtkStack deslizar de volta para a Dashboard.
  */
 static void on_btn_voltar_prontuarios_clicked(GtkButton *btn, gpointer user_data) {
-    printf("[GUI] Retornando dos Prontuários para a Dashboard...\n");
+    log_message(LOG_INFO, "[GUI] Retornando dos Prontuários para a Dashboard...");
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
 }
 
@@ -237,7 +238,7 @@ static GtkWidget* criar_tela_prontuarios(void) {
  * @brief Callback para o botão "Voltar" da Tela de Cadastro de Pacientes.
  */
 static void on_btn_voltar_cadastro_clicked(GtkButton *btn, gpointer user_data) {
-    printf("[GUI] Retornando do Cadastro para a Dashboard...\n");
+    log_message(LOG_INFO, "[GUI] Retornando do Cadastro para a Dashboard...");
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
 }
 

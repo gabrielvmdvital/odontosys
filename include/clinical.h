@@ -46,17 +46,17 @@ typedef struct {
     char diag_date[11];                 /**< Data do pré-diagnóstico (DD/MM/AAAA) */
     PatientMetrics collected_metrics;   /**< Métricas coletadas no dia do atendimento */
 // Parâmetros necessários para diagnóstico
-    float ANB;                          /**< Relação maxila/mandíbula (ângulo) */
-    float CoA;                          /**< Comprimento da maxila (distância) */
-    float CoGn;                         /**< Comprimento mandibular (distância) */
-    float AFAI;                         /**< Altura facial inferior (distância) */
-    float SNGoGN;                       /**< Padrão vertical facial (ângulo) */
-    float NA1_dist;                     /**< Posição do incisivo superior (distância) */
-    float NA1_ang;                      /**< Inclinação do incisivo superior (ângulo) */
-    float NA2_dist;                     /**< Posição do incisivo inferior (distância) */
-    float NA2_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
-    char Perf_Tegument[50];             /**< Formato do perfil (texto) */
-    char diagnosis[100];                /**< Diagnóstico obtido através da árvore de decisão */
+    float anb;                          /**< Relação maxila/mandíbula (ângulo) */
+    float coa;                          /**< Comprimento da maxila (distância) */
+    float co_gn;                         /**< Comprimento mandibular (distância) */
+    float afai;                         /**< Altura facial inferior (distância) */
+    float sn_go_gn;                       /**< Padrão vertical facial (ângulo) */
+    float na1_dist;                     /**< Posição do incisivo superior (distância) */
+    float na1_ang;                      /**< Inclinação do incisivo superior (ângulo) */
+    float na2_dist;                     /**< Posição do incisivo inferior (distância) */
+    float na2_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
+    char perf_tegument[50];             /**< Formato do perfil (texto) */
+    char pre_diagnosis[100];            /**< Diagnóstico obtido através da árvore de decisão */
 } ClinicalRecord;
 
 /**
