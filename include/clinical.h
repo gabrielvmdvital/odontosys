@@ -45,7 +45,18 @@ typedef struct {
     int patient_id;                     /**< ID do paciente relacionado (chave estrangeira) */
     char diag_date[11];                 /**< Data do pré-diagnóstico (DD/MM/AAAA) */
     PatientMetrics collected_metrics;   /**< Métricas coletadas no dia do atendimento */
-    char diagnosis[100];                /**< Diagnóstico obtido através da árvore de decisão */
+// Parâmetros necessários para diagnóstico
+    float anb;                          /**< Relação maxila/mandíbula (ângulo) */
+    float coa;                          /**< Comprimento da maxila (distância) */
+    float co_gn;                         /**< Comprimento mandibular (distância) */
+    float afai;                         /**< Altura facial inferior (distância) */
+    float sn_go_gn;                       /**< Padrão vertical facial (ângulo) */
+    float na1_dist;                     /**< Posição do incisivo superior (distância) */
+    float na1_ang;                      /**< Inclinação do incisivo superior (ângulo) */
+    float na2_dist;                     /**< Posição do incisivo inferior (distância) */
+    float na2_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
+    char perf_tegument[50];             /**< Formato do perfil (texto) */
+    char pre_diagnosis[100];            /**< Diagnóstico obtido através da árvore de decisão */
 } ClinicalRecord;
 
 /**
