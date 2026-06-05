@@ -86,7 +86,7 @@ int save_user(User *user) {
 User find_user_by_cpf(const char *cpf) {
             user->birth_date,
             user->metrics.height, 
-            user->metrics.weight);
+            user->metrics.weight);      // ANALISAR ERRO !!!!!!
     fclose(file);
     log_message(LOG_INFO, "Usuario cadastrado no CSV com sucesso: %s (ID: %d)", user->name, user->id);
     update_cached_user_count(1);
@@ -154,7 +154,7 @@ User find_user_by_id(int user_id) {
             strcpy(found.name, fields[1]);
             strcpy(found.email, fields[2]);
             strcpy(found.cpf, fields[3]);
-            strcpy(found.birth_date, fields[4])
+            strcpy(found.birth_date, fields[4]);
             found.metrics.height = atof(fields[5]);
             found.metrics.weight = atof(fields[6]);
             break;
@@ -206,7 +206,7 @@ int update_user(int user_id, User *user) {
                     user->name, 
                     user->email, 
                     user->cpf, 
-                    user->birth_date;
+                    user->birth_date,
                     user->metrics.height, 
                     user->metrics.weight);
             updated = 1;
@@ -345,11 +345,11 @@ int save_clinical_record(ClinicalRecord *record) {
     fprintf(file, "%d;%d;%s;%.2f;%.2f;%s;%s\n", 
             record->id, 
             record->patient_id, 
-            record->date, 
+            record->diag_date, 
             record->collected_metrics.height, 
             record->collected_metrics.weight, 
-            record->diagnosis, 
-            record->recommendation);
+            record->diagnosis); 
+            //record->recommendation); // Não vai precisar de recomendação 
 
     fclose(file);
     log_message(LOG_INFO, "Prontuario ID %d adicionado no CSV para Paciente ID %d.", record->id, record->patient_id);
@@ -403,11 +403,11 @@ ClinicalRecord* load_clinical_records(int patient_id, int *total_count) {
         if (atoi(fields[1]) == patient_id) {
             records[current].id = atoi(fields[0]);
             records[current].patient_id = atoi(fields[1]);
-            strcpy(records[current].date, fields[2]);
+            strcpy(records[current].diag_date, fields[2]);
             records[current].collected_metrics.height = atof(fields[3]);
             records[current].collected_metrics.weight = atof(fields[4]);
             strcpy(records[current].diagnosis, fields[5]);
-            strcpy(records[current].recommendation, fields[6]);
+            // strcpy(records[current].recommendation, fields[6]); Não vamos precisar de recomendação
             current++;
         }
     }
@@ -453,7 +453,7 @@ User* get_all_users(int *total_count) {
         strcpy(users[current].name, fields[1]);
         strcpy(users[current].email, fields[2]);
         strcpy(users[current].cpf, fields[3]);
-        strcpy(users[currente].birth_date, fields[4])
+        strcpy(users[current].birth_date, fields[4]);
         users[current].metrics.height = atof(fields[5]);
         users[current].metrics.weight = atof(fields[6]);
         current++;
