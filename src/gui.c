@@ -21,6 +21,15 @@ typedef struct {
     GtkWidget *entry_senha;   // Ponteiro para o campo de texto da senha
 } LoginCampos;
 
+/**
+ * @brief Estrutura que contém os componentes de busca na tela de prontuários.
+ * Usada para passar vários dados para o botão de busca 
+ */
+typedef struct {
+    GtkWidget *entry_busca; // Ponteiro para o campo de texto
+    GtkWidget *listbox; // Ponteiro para a lista
+} BuscaCampos;
+
 // ============================================================================
 // FUNÇÕES DE CALLBACK (EVENTOS)
 // ============================================================================
@@ -82,6 +91,55 @@ static void on_menu_button_clicked(GtkButton *btn, gpointer user_data) {
 static void on_btn_voltar_prontuarios_clicked(GtkButton *btn, gpointer user_data) {
     printf("[GUI] Retornando dos Prontuários para a Dashboard...\n");
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
+}
+/**
+ * @brief Lista onde vai ser procurado o paciente buscado.
+ * Armazena os pacientes fictícios.
+ */
+// lista que recebe os endereços dos pacientes ficticios (precisa ser mudado dps para receber todos cadastrados)
+static const char *pacientes_mock[] = {
+    "  📝 João Silva (Invisalign - Manutenção)",
+    "  📝 Maria Souza (Canal Pendor)",
+    "  📝 Carlos Eduardo (Avaliação Inicial)",
+    NULL // fim da liksta 
+};
+/**
+ * @brief Callback do botão de buscar.
+ */
+static void on_btn_buscar_clicked(GtkButton *btn, gpointer user_data) { 
+    //Muda o user_data pata BuscaCampos agr levando ao ponteiro da busca
+    BuscaCampos *busca = (BuscaCampos *)user_data;
+    const char *texto = gtk_editable_get_text(GTK_EDITABLE(busca->entry_busca));
+
+    printf("[GUI] Buscando por: %s\n", texto);
+
+    // Limpa os itens anteriores do listbox
+    GtkWidget *paciente;
+    while ((paciente = gtk_widget_get_first_child(busca->listbox)) != NULL) {
+        gtk_list_box_remove(GTK_LIST_BOX(busca->listbox), paciente);
+    }
+
+    // Aqui usamos o for para testar se o digitado(busca) faz parte da listbox e tratamos o texto para que aceite maiusculas e minusculas.
+    gchar *busca_lower = g_utf8_strdown(texto, -1);
+    int encontrou = 0;
+
+    for (int i = 0; pacientes_mock[i] != NULL; i++) {
+        gchar *item_lower = g_utf8_strdown(pacientes_mock[i], -1);
+        if (g_strstr_len(item_lower, -1, busca_lower) != NULL) {
+            gtk_list_box_append(GTK_LIST_BOX(busca->listbox),
+                                gtk_label_new(pacientes_mock[i]));
+            encontrou++;
+        }
+        g_free(item_lower); //Libera a memória
+    }
+
+    // Caso não tiver ninguém com o texto digitado
+    if (encontrou == 0) {
+        gtk_list_box_append(GTK_LIST_BOX(busca->listbox),
+                            gtk_label_new("  ❌ Nenhum paciente encontrado."));
+    }
+
+    g_free(busca_lower); 
 }
 
 // ============================================================================
@@ -181,6 +239,7 @@ static GtkWidget* criar_tela_dashboard(void) {
  * @brief Constrói o Passo 1 (Visual) da Tela 3 - Gerenciar Prontuários.
  */
 static GtkWidget* criar_tela_prontuarios(void) {
+    static BuscaCampos busca;
     // Caixa principal vertical com margens internas
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
     gtk_widget_set_margin_top(vbox, 20);
@@ -205,14 +264,13 @@ static GtkWidget* criar_tela_prontuarios(void) {
     // --- BARRA DE BUSCA (Passo 2 do seu Fluxograma - Futuro) ---
     GtkWidget *hbox_busca = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     
-    GtkWidget *entry_busca = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_busca), "Buscar paciente pelo nome...");
-    gtk_widget_set_hexpand(entry_busca, TRUE);
-    gtk_box_append(GTK_BOX(hbox_busca), entry_busca);
+    busca.entry_busca = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(busca.entry_busca), "Buscar paciente pelo nome...");
+    gtk_widget_set_hexpand(busca.entry_busca, TRUE);
+    gtk_box_append(GTK_BOX(hbox_busca), busca.entry_busca);
 
     GtkWidget *btn_buscar = gtk_button_new_with_label("🔍 Buscar");
     gtk_box_append(GTK_BOX(hbox_busca), btn_buscar);
-
     gtk_box_append(GTK_BOX(vbox), hbox_busca);
 
     // --- LISTA DE PRONTUÁRIOS (Dados simulados / Mocados) ---
@@ -220,15 +278,17 @@ static GtkWidget* criar_tela_prontuarios(void) {
     gtk_widget_set_halign(lbl_lista, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(vbox), lbl_lista);
 
-    GtkWidget *listbox = gtk_list_box_new();
-    gtk_widget_set_vexpand(listbox, TRUE); // Faz a lista ocupar o espaço restante
+    busca.listbox = gtk_list_box_new(); // Salva na struct 
+    gtk_widget_set_vexpand(busca.listbox, TRUE); // Faz a lista ocupar o espaço restante
+    //
+    for (int i = 0; pacientes_mock[i] != NULL; i++) {
+        gtk_list_box_append(GTK_LIST_BOX(busca.listbox), gtk_label_new(pacientes_mock[i]));
+    }
 
-    // Adicionando pacientes fictícios para o protótipo
-    gtk_list_box_append(GTK_LIST_BOX(listbox), gtk_label_new("  📝 João Silva (Invisalign - Manutenção)"));
-    gtk_list_box_append(GTK_LIST_BOX(listbox), gtk_label_new("  📝 Maria Souza (Canal Pendor)"));
-    gtk_list_box_append(GTK_LIST_BOX(listbox), gtk_label_new("  📝 Carlos Eduardo (Avaliação Inicial)"));
+    // conecta o botão ao callback
+    g_signal_connect(btn_buscar, "clicked", G_CALLBACK(on_btn_buscar_clicked), &busca);
 
-    gtk_box_append(GTK_BOX(vbox), listbox);
+    gtk_box_append(GTK_BOX(vbox), busca.listbox);
 
     return vbox;
 }
