@@ -48,16 +48,24 @@ typedef struct {
 // Parâmetros necessários para diagnóstico
     float anb;                          /**< Relação maxila/mandíbula (ângulo) */
     float coa;                          /**< Comprimento da maxila (distância) */
-    float co_gn;                         /**< Comprimento mandibular (distância) */
+    int maxila_tipo;                    //** em que 0=normal 1=protruida -1=retruida
+    int maxila_desvio;                   //** se protruido ou retruida, desvio de quanto? (em mm)
+    float cogn;                         /**< Comprimento mandibular (distância) */
     float afai;                         /**< Altura facial inferior (distância) */
-    float sn_go_gn;                       /**< Padrão vertical facial (ângulo) */
+    float sngogn;                       /**< Padrão vertical facial (ângulo) */
     float na1_dist;                     /**< Posição do incisivo superior (distância) */
     float na1_ang;                      /**< Inclinação do incisivo superior (ângulo) */
     float na2_dist;                     /**< Posição do incisivo inferior (distância) */
     float na2_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
     char perf_tegument[50];             /**< Formato do perfil (texto) */
-    char pre_diagnosis[100];            /**< Diagnóstico obtido através da árvore de decisão */
+    char pre_diagnosis[500];            /**< Diagnóstico obtido através da árvore de decisão */
 } ClinicalRecord;
+
+void clinical_formular_diag(ClinicalRecord *record);
+/**
+ * @brief processar o pre diagnostico do paciente com as medidas de Clinicalrecord, tabela de Macnamara e as regras de ngócio.
+ * 
+ */
 
 /**
  * @brief Constrói e inicializa a árvore binária de decisão clínica na memória.
