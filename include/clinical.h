@@ -14,30 +14,6 @@ typedef struct {
 
 
 /**
- * @brief Operadores de comparação suportados na tomada de decisão.
- */
-typedef enum {
-    OP_LESS_THAN,       /**< Operador menor que (<) */
-    OP_GREATER_THAN,    /**< Operador maior que (>) */
-    OP_EQUAL            /**< Operador de igualdade (==) */
-} CompareOperator;
-
-/**
- * @brief Estrutura do nó da árvore binária de decisão para pré-diagnóstico clínico.
- */
-typedef struct DecisionNode {
-    bool is_leaf;                       /**< Indica se o nó é folha (diagnóstico final) ou nó de decisão (pergunta) */
-    char title[100];                    /**< Título do diagnóstico (se folha) ou descrição do teste (se pergunta) */
-    char recommendation[256];           /**< Recomendação de tratamento sugerida (apenas se for nó folha) */
-    
-    CompareOperator op;                 /**< Operador de comparação condicional */
-    double reference_value;             /**< Valor de referência clínico para o teste */
-    
-    struct DecisionNode *true_branch;   /**< Ponteiro para o próximo nó se a condição for verdadeira */
-    struct DecisionNode *false_branch;  /**< Ponteiro para o próximo nó se a condição for falsa */
-} DecisionNode;
-
-/**
  * @brief Representa o prontuário final com o histórico clínico de um paciente.
  */
 typedef struct {
@@ -48,38 +24,23 @@ typedef struct {
 // Parâmetros necessários para diagnóstico
     float anb;                          /**< Relação maxila/mandíbula (ângulo) */
     float coa;                          /**< Comprimento da maxila (distância) */
-    float co_gn;                         /**< Comprimento mandibular (distância) */
+    int maxila_tipo;                    /**< em que 0=normal, 1=protruida e -1=retruida */
+    int maxila_desvio;                  /**< se protruido ou retruida, desvio de quanto? (em mm) */
+    float cogn;                         /**< Comprimento mandibular (distância) */
     float afai;                         /**< Altura facial inferior (distância) */
-    float sn_go_gn;                       /**< Padrão vertical facial (ângulo) */
+    float sngogn;                       /**< Padrão vertical facial (ângulo) */
     float na1_dist;                     /**< Posição do incisivo superior (distância) */
     float na1_ang;                      /**< Inclinação do incisivo superior (ângulo) */
     float na2_dist;                     /**< Posição do incisivo inferior (distância) */
     float na2_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
     char perf_tegument[50];             /**< Formato do perfil (texto) */
-    char pre_diagnosis[100];            /**< Diagnóstico obtido através da árvore de decisão */
+    char pre_diagnosis[500];            /**< Diagnóstico obtido através da árvore de decisão */
 } ClinicalRecord;
 
+void clinical_formular_diag(ClinicalRecord *record);
 /**
- * @brief Constrói e inicializa a árvore binária de decisão clínica na memória.
+ * @brief processar o pre diagnostico do paciente com as medidas de Clinicalrecord, tabela de Macnamara e as regras de ngócio.
  * 
- * @return Retorna um ponteiro para o nó raiz da árvore alocada.
  */
-DecisionNode* clinical_init_decision_tree(void);
-
-/**
- * @brief Desaloca recursivamente todos os nós da árvore de decisão de forma limpa da memória heap.
- * 
- * @param root Ponteiro para o nó raiz da árvore a ser desalocada.
- */
-void clinical_free_tree(DecisionNode *root);
-
-/**
- * @brief Avalia recursivamente as métricas do paciente em relação aos valores de referência da árvore de decisão.
- * 
- * @param root Ponteiro para o nó atual (ou raiz) da árvore de decisão.
- * @param metrics As métricas físicas do paciente que serão avaliadas.
- * @return Retorna um ponteiro para o nó folha resultante, contendo o pré-diagnóstico e recomendações finais.
- */
-DecisionNode* clinical_evaluate(DecisionNode *root, PatientMetrics metrics);
 
 #endif // CLINICAL_H
