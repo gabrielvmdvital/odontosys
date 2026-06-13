@@ -31,6 +31,18 @@ typedef struct {
     GtkWidget *listbox; // Ponteiro para a lista
 } BuscaCampos;
 
+/**
+ * @brief Estrutura que agrupa os componentes de texto da tela de cadastro de pacientes.
+ * Usada para capturar os dados informados e enviá-los ao callback de salvamento.
+ */
+typedef struct {
+    GtkWidget *entry_nome;       // Ponteiro para o campo de texto do nome
+    GtkWidget *entry_email;      // Ponteiro para o campo de texto do email (opcional)
+    GtkWidget *entry_cpf;        // Ponteiro para o campo de texto do CPF
+    GtkWidget *entry_data_nasc;  // Ponteiro para o campo de texto da data de nascimento
+    GtkWidget *entry_telefone;   // Ponteiro para o campo de texto do telefone
+} CadastroCampos;
+
 // ============================================================================
 // FUNÇÕES DE CALLBACK (EVENTOS)
 // ============================================================================
@@ -143,12 +155,40 @@ static void on_btn_buscar_clicked(GtkButton *btn, gpointer user_data) {
     g_free(busca_lower); 
 }
 
+/**
+ * @brief Callback disparado quando o botão "Salvar Ficha" da tela de Cadastro é clicado.
+ * Captura os dados textuais inseridos na interface visual e imprime nos logs do sistema.
+ */
+static void on_btn_salvar_cadastro_clicked(GtkButton *btn, gpointer user_data) {
+    // 1. Recuperamos a struct com os campos de entrada através do ponteiro genérico
+    CadastroCampos *campos = (CadastroCampos *)user_data;
+
+    // 2. Extraímos as strings contidas em cada GtkEntry mapeado
+    const char *nome = gtk_editable_get_text(GTK_EDITABLE(campos->entry_nome));
+    const char *email = gtk_editable_get_text(GTK_EDITABLE(campos->entry_email));
+    const char *cpf = gtk_editable_get_text(GTK_EDITABLE(campos->entry_cpf));
+    const char *data_nasc = gtk_editable_get_text(GTK_EDITABLE(campos->entry_data_nasc));
+    const char *telefone = gtk_editable_get_text(GTK_EDITABLE(campos->entry_telefone));
+
+    // 3. Print de debug estruturado usando o logger unificado do sistema
+    log_message(LOG_INFO, "[GUI] Processando novo cadastro de paciente...");
+    log_message(LOG_INFO, " |- Nome: %s", nome);
+    log_message(LOG_INFO, " |- Email: %s", (strlen(email) == 0) ? "(Não Informado)" : email);
+    log_message(LOG_INFO, " |- CPF: %s", cpf);
+    log_message(LOG_INFO, " |- Data de Nasc: %s", data_nasc);
+    log_message(LOG_INFO, " |- Telefone: %s", telefone);
+
+    // 4. Feedback visual básico e transição automática de volta à Dashboard
+    log_message(LOG_INFO, "[GUI] Cadastro coletado com sucesso! Retornando ao menu...");
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
+}
+
 // ============================================================================
 // CONSTRUTORES DE INTERFACES (TELAS)
 // ============================================================================
 
 /**
- * @brief Constrói e organiza os elementos visuais da Tela de Login.
+ * @brief Constrói e organiza os elements visuais da Tela de Login.
  * @return Retorna um GtkWidget (GtkBox) contendo toda a interface de login pronta.
  */
 static GtkWidget* criar_tela_login(LoginCampos *campos) {
@@ -304,10 +344,11 @@ static void on_btn_voltar_cadastro_clicked(GtkButton *btn, gpointer user_data) {
 
 /**
  * @brief Constrói o Passo 1 (Visual) da Tela 4 - Cadastrar Pacientes.
+ * Recebe o ponteiro da struct de campos para mapear os widgets de texto de cadastro.
  */
-static GtkWidget* criar_tela_cadastro_pacientes(void) {
-    // Caixa principal vertical com espaçamento e margens
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+static GtkWidget* criar_tela_cadastro_pacientes(CadastroCampos *campos) {
+    // Caixa principal vertical com espaçamento de 8px entre os rótulos e campos
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
     gtk_widget_set_margin_top(vbox, 20);
     gtk_widget_set_margin_bottom(vbox, 20);
     gtk_widget_set_margin_start(vbox, 20);
@@ -315,6 +356,7 @@ static GtkWidget* criar_tela_cadastro_pacientes(void) {
 
     // --- TOPO (Botão Voltar e Título) ---
     GtkWidget *hbox_topo = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_margin_bottom(hbox_topo, 10);
     
     GtkWidget *btn_voltar = gtk_button_new_with_label("⬅️ Voltar");
     g_signal_connect(btn_voltar, "clicked", G_CALLBACK(on_btn_voltar_cadastro_clicked), NULL);
@@ -327,38 +369,58 @@ static GtkWidget* criar_tela_cadastro_pacientes(void) {
     
     gtk_box_append(GTK_BOX(vbox), hbox_topo);
 
-    // --- FORMULÁRIO DE CADASTRO (Passo 1 - Desenhar Visual) ---
+    // --- FORMULÁRIO DE CADASTRO ---
+    // 1. Nome Completo
     GtkWidget *lbl_nome = gtk_label_new("Nome Completo:");
     gtk_widget_set_halign(lbl_nome, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(vbox), lbl_nome);
-    GtkWidget *entry_nome = gtk_entry_new();
-    gtk_box_append(GTK_BOX(vbox), entry_nome);
+    campos->entry_nome = gtk_entry_new();
+    gtk_box_append(GTK_BOX(vbox), campos->entry_nome);
 
+    // 2. Email (Não Obrigatório)
+    GtkWidget *lbl_email = gtk_label_new("E-mail (Opcional):");
+    gtk_widget_set_halign(lbl_email, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), lbl_email);
+    campos->entry_email = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_email), "exemplo@email.com");
+    gtk_box_append(GTK_BOX(vbox), campos->entry_email);
+
+    // 3. CPF
     GtkWidget *lbl_cpf = gtk_label_new("CPF:");
     gtk_widget_set_halign(lbl_cpf, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(vbox), lbl_cpf);
-    GtkWidget *entry_cpf = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_cpf), "000.000.000-00");
-    gtk_box_append(GTK_BOX(vbox), entry_cpf);
+    campos->entry_cpf = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_cpf), "000.000.000-00");
+    gtk_box_append(GTK_BOX(vbox), campos->entry_cpf);
 
+    // 4. Data de Nascimento
+    GtkWidget *lbl_data_nasc = gtk_label_new("Data de Nascimento:");
+    gtk_widget_set_halign(lbl_data_nasc, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), lbl_data_nasc);
+    campos->entry_data_nasc = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_data_nasc), "DD/MM/AAAA");
+    gtk_box_append(GTK_BOX(vbox), campos->entry_data_nasc);
+
+    // 5. Telefone
     GtkWidget *lbl_telefone = gtk_label_new("Telefone / WhatsApp:");
     gtk_widget_set_halign(lbl_telefone, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(vbox), lbl_telefone);
-    GtkWidget *entry_telefone = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_telefone), "(81) 99999-9999");
-    gtk_box_append(GTK_BOX(vbox), entry_telefone);
+    campos->entry_telefone = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_telefone), "(81) 99999-9999");
+    gtk_box_append(GTK_BOX(vbox), campos->entry_telefone);
 
     // --- BOTÃO SALVAR ---
     GtkWidget *btn_salvar = gtk_button_new_with_label("💾 Salvar Ficha");
     gtk_widget_set_margin_top(btn_salvar, 15);
     gtk_widget_set_size_request(btn_salvar, -1, 40);
+    
+    // Conectando o clique do botão salvar ao callback mapeado com a struct de campos
+    g_signal_connect(btn_salvar, "clicked", G_CALLBACK(on_btn_salvar_cadastro_clicked), campos);
+    
     gtk_box_append(GTK_BOX(vbox), btn_salvar);
 
     return vbox;
 }
-
-
-
 
 // ============================================================================
 // INICIALIZAÇÃO E FLUXO PRINCIPAL DO GTK
@@ -367,14 +429,15 @@ static GtkWidget* criar_tela_cadastro_pacientes(void) {
 /**
  * @brief Evento principal de ativação do GTK. Constrói a janela e a pilha de telas.
  */
-   static void on_app_activate(GtkApplication *app, gpointer user_data) {
-    // Instancia a estrutura dos campos de forma estática para persistir na memória do app
-    static LoginCampos campos;
+static void on_app_activate(GtkApplication *app, gpointer user_data) {
+    // Instancia as estruturas dos campos de forma estática para persistir na memória do app
+    static LoginCampos campos_login;
+    static CadastroCampos campos_cadastro;
 
     // 1. Criação da janela principal do Windows
     GtkWidget *window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "ODONTOSYS");
-    gtk_window_set_default_size(GTK_WINDOW(window), 500, 400);
+    gtk_window_set_default_size(GTK_WINDOW(window), 500, 450); // Ajuste fino no tamanho vertical para o formulário caber bem
 
     // 2. Criação do componente GtkStack (Gerenciador de Empilhamento de Telas)
     g_stack = gtk_stack_new();
@@ -383,11 +446,11 @@ static GtkWidget* criar_tela_cadastro_pacientes(void) {
     gtk_stack_set_transition_type(GTK_STACK(g_stack), GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
     gtk_stack_set_transition_duration(GTK_STACK(g_stack), 300); // 300 milissegundos de efeito
 
-    // 3. Construção das telas independentes
-    GtkWidget *layout_login = criar_tela_login(&campos);
+    // 3. Construção das telas independentes passando as referências de memória das structs de captura
+    GtkWidget *layout_login = criar_tela_login(&campos_login);
     GtkWidget *layout_dashboard = criar_tela_dashboard();
     GtkWidget *layout_prontuarios = criar_tela_prontuarios();
-    GtkWidget *layout_cadastro = criar_tela_cadastro_pacientes(); // <-- INCLUÍDO NO PASSO 3
+    GtkWidget *layout_cadastro = criar_tela_cadastro_pacientes(&campos_cadastro); // <-- INCLUÍDO NO PASSO 3
 
     // 4. Adicionando as telas dentro do Stack e dando um "nome" de identificação para cada uma
     gtk_stack_add_named(GTK_STACK(g_stack), layout_login, "login_page");
