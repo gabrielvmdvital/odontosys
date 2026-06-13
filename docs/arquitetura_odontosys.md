@@ -6,7 +6,7 @@ Este documento apresenta a arquitetura e o diagrama de blocos básico do **Odont
 
 ## Diagrama de Blocos Arquitetural
 
-O sistema é dividido em **4 camadas principais** que seguem o padrão modular de desenvolvimento em linguagem C:
+O sistema é dividido em **4 camadas principais**:
 
 ![Diagrama de Blocos Arquitetural](diagrama_odontosys.svg)
 
@@ -20,14 +20,15 @@ O sistema é dividido em **4 camadas principais** que seguem o padrão modular d
 
 ### 2. Camada de Lógica & Estado (Core)
 * **`main.c`:** Inicializa todas as peças do sistema em ordem (Métricas, Logs, Estado e Janela Gráfica) e gerencia o loop de mensagens da aplicação.
-* **`app.c` / `app.h` (`AppState`):** Centraliza o estado atual do programa em uma única estrutura na memória (quem é o usuário logado, qual a pergunta atual da árvore de decisão, etc.).
-* **`clinical.c` / `clinical.h`:** Contém a estrutura de dados da **Árvore Binária de Decisão** para o pré-diagnóstico odontológico e executa a lógica de travessia baseada nos parâmetros clínicos inseridos.
+* **`app.c` / `app.h` (`AppState`):** Centraliza o estado atual do programa em uma única estrutura na memória (quem é o usuário logado, qual a aba atual, etc.).
+* **`clinical.c` / `clinical.h`:** Contém as lógicas de negócio e as fórmulas para o pré-diagnóstico odontológico e executa a classificação baseada nos parâmetros clínicos inseridos.
 
 ### 3. Camada de Dados (Database)
 * **Componente:** `database.c` / `database.h`
-* **Função:** É o motor de persistência. Traduz as estruturas de memória do C (`User` e `ClinicalRecord`) para linhas de arquivos de texto formatados em **CSV** delimitados por ponto-e-vírgula (`;`).
-* **`database/usuarios.csv`:** Armazena exclusivamente o cadastro básico de pacientes e dentistas.
-* **`database/prontuarios.csv`:** Armazena o prontuário de atendimentos e os diagnósticos gerados pela árvore de decisão vinculados pelo ID do paciente.
+* **Função:** É o motor de persistência. Traduz as estruturas de memória do C (`Dentist`, `Patient` e `ClinicalRecord`) para linhas de arquivos de texto formatados em **CSV** delimitados por ponto-e-vírgula (`;`). As chaves primárias e estrangeiras são baseadas em inteiros sem sinal de 64 bits (`uint64_t`).
+* **`database/dentists.csv`:** Armazena o cadastro e as credenciais de login dos profissionais dentistas (`dentist_id`).
+* **`database/pacientes.csv`:** Armazena exclusivamente o cadastro básico de pacientes (`patient_id`).
+* **`database/prontuarios.csv`:** Armazena o prontuário de atendimentos e os diagnósticos gerados vinculados aos IDs do paciente e dentista (`clinical_id`).
 
 ### 4. Camada Auxiliar (Logs)
 * **Componente:** `logs.c` / `logs.h`

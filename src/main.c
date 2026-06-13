@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "app.h"
 #include "gui.h"
 #include "clinical.h"
 
 int main(void) {
+    srand(time(NULL));
     printf("[INICIALIZACAO] Iniciando aplicacao modular em C...\n");
     
     // 1. Inicializa o estado
