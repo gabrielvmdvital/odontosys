@@ -16,8 +16,8 @@ typedef struct {
 // Parâmetros necessários para diagnóstico
     float anb;                          /**< Relação maxila/mandíbula (ângulo) */
     float coa;                          /**< Comprimento da maxila (distância) */
-    int maxila_tipo;                    /**< em que 0=normal, 1=protruida e -1=retruida */
-    int maxila_desvio;                  /**< se protruido ou retruida, desvio de quanto? (em mm) */
+    int maxila_tipo;                    /**< normal = 0 | protruida = 1 | retruida = -1 */
+    int maxila_desvio;                  /**< se protruido ou retruida, desvio de quanto (valor positivo em mm)? */
     float cogn;                         /**< Comprimento mandibular (distância) */
     float afai;                         /**< Altura facial inferior (distância) */
     float sngogn;                       /**< Padrão vertical facial (ângulo) */

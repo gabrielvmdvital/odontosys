@@ -10,11 +10,11 @@
 // 1) ANB (Classe esquelética): 1-4 = Classe I | >4 = Classe II | <1 = Classe III
 // 2) CoA + CoGn: Comparação com tabela de McNamara -> Mandíbula reduzida / normal / aumentada
 // 3) AFAI (Padrão crescimento facial): aumentada = vertical | normal = equilibrado | diminuída = horizontal
-// 4) 1-NA (Posição incisivo sup): 3-5 = normal | >5 = protruído | <3 = retruído
-// 5) 1.NA (Inclinação incisivo sup): 24-25 = normal | >25 = inclinado | <23 = verticalizado
-// 6) 1-NB (Posição incisivo inf): 3-5 = normal | >5 = protruído | <3 = retruído
-// 7) 1.NB (Inclinação incisivo inf): 24-26 = normal | >26 = inclinado | <24 = verticalizado
-// 8) SNGoGn (Padrão crescimento): aumentado = vertical | normal = equilibrado | diminuído = horizontal (!! Verificar como utilizar esse !!)
+// 4) SNGoGn (Padrão crescimento): aumentado = vertical | normal = equilibrado | diminuído = horizontal (!! Verificar como utilizar esse !!)
+// 5) 1-NA (Posição incisivo sup): 3-5 = normal | >5 = protruído | <3 = retruído
+// 6) 1.NA (Inclinação incisivo sup): 24-25 = normal | >25 = inclinado | <23 = verticalizado
+// 7) 1-NB (Posição incisivo inf): 3-5 = normal | >5 = protruído | <3 = retruído
+// 8) 1.NB (Inclinação incisivo inf): 24-26 = normal | >26 = inclinado | <24 = verticalizado
 // 9) Perf_tegument (Perfil facial): reto | convexo | concavo | normal
 
 /* Exemplo de Pré-Diagnóstico:
@@ -26,42 +26,72 @@
 void clinical_formular_diag(ClinicalRecord *record) {
 
 // 1) Classe esquelética (variável utilizada: anb)
-char str_classe[15];
-if (1 <= record->anb <= 4)       // OBS.: Usar 'record->anb' é o mesmo que '(*record).anb'
-        strcpy(str_classe, "Classe I"); 
+        char str_classe[15];
+        if (1 <= record->anb <= 4)       // OBS.: Usar 'record->anb' é o mesmo que '(*record).anb'
+                strcpy(str_classe, "Classe I"); 
 
-else if (record->anb > 4)
-        strcpy(str_classe, "Classe II");
+        else if (record->anb > 4)
+                strcpy(str_classe, "Classe II");
 
-else
-        strcpy(str_classe, "Classe III");
+        else
+                strcpy(str_classe, "Classe III");
+
+// 2) Tamanho da Mandíbula (coa, maxila_tipo, maxila_desvio + cogn + Tabela de McNamara)
+        char str_tam_mand[20];
+        // Receber Coa e corrigir proporcinalmente ao desvio da mandibula
+        int coa_corrigido;
+
+        // Maxila bem posicionada/normal (Desvio 0)
+        coa_corrigido = (int)record->coa;
+
+        // Maxila Protuida (Diminuir os mm extra):
+        if (record->maxila_tipo == 1)
+                coa_corrigido = coa_corrigido - record->maxila_desvio;
+
+        // Maxila Retruida (Acrescentar os mm extra):
+        else if (record->maxila_tipo == -1)
+                coa_corrigido = coa_corrigido + record->maxila_desvio;
+
+        // Tabela de McNamara
+        
+        
+        
+        
+
+
+// 3) Padrão de Crescimento Facial (afai)
+        char str_cresc_fac[20];
+
+
+// 4) Padrão crescimento (sngocn) | OBS: Possivelmente será um só com o item 3)
+
+
+// 5) Posição incisivo sup (variável: na1_dist)
+        char str_pos_incsup[20];
+        if (3 <= record->na1_dist <= 5)
+                strcpy(str_pos_incsup, "normal");
+
+        else if (record->na1_dist > 5)
+                strcpy(str_pos_incsup, "protruido");
+
+        else 
+                strcpy(str_pos_incsup, "retruido");
+
+// 6) Inclinação incisivo sup (na1_ang)
 
 
 
-// 4) Posição incisivo sup (variável: na1_dist)
-char str_pos_incsup[20];
-if (3 <= record->na1_dist <= 5)
-        strcpy(str_pos_incsup, "normal");
-
-else if (record->na1_dist > 5)
-        strcpy(str_pos_incsup, "protruido");
-
-else 
-        strcpy(str_pos_incsup, "retruido");
+// 7) Posição incisivo inf (na2_dist)
 
 
-// receber medida coa e corrigir se tiver desvio
-int coa_corrigido;
-//maxila normal:
-coa_corrigido = (int)record->coa;
 
-//maxilaprotuida:
-if (record->maxila_tipo == 1)
-        coa_corrigido = coa_corrigido - record->maxila_desvio;
+// 8) Inclinação incisivo inf (na2_ang)
 
-//maxila retraida:
-else if (record->maxila_tipo == -1)
-        coa_corrigido = coa_corrigido + record->maxila_desvio;
+
+
+// 9) Perfil facial (perf_tegument)
+
+
 
 
 // No fim, juntar tudo em uma string para copiar em pre_diagnosis.
