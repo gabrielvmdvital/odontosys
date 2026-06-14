@@ -1,81 +1,65 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include "patient.h"
-#include "clinical.h"
+#include <stdint.h>
 
 #define PATIENT_FILE "database/pacientes.csv"
 #define PATIENT_FILE_TEMP "database/pacientes_temp.csv"
 #define CLINICAL_FILE "database/prontuarios.csv"
 #define CLINICAL_FILE_TEMP "database/prontuarios_temp.csv"
+#define DENTIST_FILE "database/dentists.csv"
+#define DENTIST_FILE_TEMP "database/dentists_temp.csv"
 #define PATIENT_COUNT_FILE "database/patient_count.txt"
 
 /**
- * @brief Inicializa o banco de dados, garantindo que a pasta 'database' exista.
+ * @brief Inicializa o banco de dados, garantindo que a pasta 'database' e os arquivos existam.
  */
 void database_init(void);
 
 /**
- * @brief Pega o total de pacientes cadastrados no arquivo cache.
+ * @brief Quebra uma linha de CSV delimitada por ';' em um array de strings.
+ * @param line A linha a ser processada (ela será modificada, '\0' inseridos)
+ * @param fields Array de ponteiros onde as colunas serão armazenadas
+ * @param max_fields Número máximo de colunas esperadas
+ * @return Número de colunas encontradas
  */
-int get_cached_patient_count(void);
+int split_csv_line(char *line, char **fields, int max_fields);
 
 /**
- * @brief Atualiza a quantidade de pacientes salvos no cache.
+ * @brief Adiciona uma linha ao final de um arquivo CSV.
+ * @param filepath Caminho do arquivo
+ * @param line Linha formatada a ser adicionada (não esqueça o \n no final)
+ * @return 1 em sucesso, 0 em falha
  */
-void update_cached_patient_count(int delta);
+int db_append_line(const char *filepath, const char *line);
 
 /**
- * @brief Salva um novo paciente no arquivo pacientes.csv.
+ * @brief Remove linhas de um arquivo CSV onde a coluna especificada tem um valor exato.
+ * @param filepath Caminho do arquivo CSV principal
+ * @param temp_filepath Caminho do arquivo CSV temporário para manipulação
+ * @param filter_col_idx Índice da coluna (0 a N) a ser testada
+ * @param filter_val Valor a ser comparado (ex: ID em string)
+ * @param max_cols Número máximo de colunas para usar no parse
+ * @return Quantidade de linhas deletadas
  */
-int save_patient(Patient *patient);
-
-
-/**
- * @brief Busca um paciente pelo CPF em pacientes.csv.
- * Retorna um struct Patient com id = -1 se não encontrado.
- */
-Patient find_patient_by_cpf(const char *cpf);
-
-/**
- * @brief Busca um paciente pelo ID em pacientes.csv.
- * Retorna um struct Patient com id = -1 se não encontrado.
- */
-Patient find_patient_by_id(int patient_id);
+int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_col_idx, const char *filter_val, int max_cols);
 
 /**
- * @brief Atualiza os dados de um paciente no arquivo pacientes.csv.
+ * @brief Atualiza uma linha em um arquivo CSV onde a coluna especificada tem um valor exato.
+ * @param filepath Caminho do arquivo CSV principal
+ * @param temp_filepath Caminho do arquivo CSV temporário
+ * @param filter_col_idx Índice da coluna a ser testada
+ * @param filter_val Valor a ser comparado (ex: ID em string)
+ * @param new_line Nova linha formatada que substituirá a antiga
+ * @param max_cols Número máximo de colunas para usar no parse
+ * @return 1 em sucesso (atualizou), 0 em falha
  */
-int update_patient(int patient_id, Patient *patient);
+int db_update_line(const char *filepath, const char *temp_filepath, int filter_col_idx, const char *filter_val, const char *new_line, int max_cols);
 
 /**
- * @brief Deleta um paciente do arquivo pacientes.csv e todos os seus prontuários de prontuarios.csv.
+ * @brief Obtém um ID único de 64 bits baseado no timestamp e num contador local.
+ * @return Próximo ID
  */
-int delete_patient(int patient_id);
-
-/**
- * @brief Deleta todos os registros clínicos de um paciente do arquivo prontuarios.csv.
- * Retorna a quantidade de registros deletados.
- */
-int delete_clinical_records_by_patient(int patient_id);
-
-/**
- * @brief Salva um registro clínico no arquivo prontuarios.csv.
- */
-int save_clinical_record(ClinicalRecord *record);
-
-/**
- * @brief Carrega os registros clínicos de um paciente do arquivo prontuarios.csv.
- * Retorna um array alocado dinamicamente e salva a quantidade em total_count.
- * deve ser liberado com free() após utilizar.
- */
-ClinicalRecord* load_clinical_records(int patient_id, int *total_count);
-
-/**
- * @brief Carrega todos os pacientes do arquivo pacientes.csv.
- * Retorna um array alocado dinamicamente e salva a quantidade em total_count.
- * deve ser liberado com free() após utilizar.
- */
-Patient* get_all_patients(int *total_count);
+uint64_t generate_unique_id(void);
 
 #endif // DATABASE_H
