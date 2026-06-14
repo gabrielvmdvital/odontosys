@@ -1,4 +1,5 @@
 #include "app.h"
+#include "database.h"
 #include <stdio.h>
 
 void app_init(AppState *state) {
@@ -6,4 +7,5 @@ void app_init(AppState *state) {
     
     // Inicialize suas variáveis aqui
     state->valor = 0;
+    database_init();
 }
