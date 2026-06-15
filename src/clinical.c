@@ -26,16 +26,15 @@
 void clinical_formular_diag(ClinicalRecord *record) {
 
 // 1) Classe esquelética (variável utilizada: anb)
+        char str_classe[15];
+        if (1 <= record->anb && record->anb <= 4)   // OBS.: Usar 'record->anb' é o mesmo que '(*record).anb'
+                strcpy(str_classe, "Classe I");
 
-char str_classe[15];
-if (1 <= record->anb <= 4)       // OBS.: Usar 'record->anb' é o mesmo que '(*record).anb'
-        strcpy(str_classe, "Classe I"); 
+        else if (record->anb > 4)
+                strcpy(str_classe, "Classe II");
 
-else if (record->anb > 4)
-        strcpy(str_classe, "Classe II");
-
-else
-        strcpy(str_classe, "Classe III");
+        else
+                strcpy(str_classe, "Classe III");
 
 // 2) Classificação Maxila (maxila_tipo)
         char str_maxila[20];

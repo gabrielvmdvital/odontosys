@@ -5,8 +5,13 @@
 
 # Compilador e Flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -Iinclude
-LDFLAGS = -lgdi32 -luser32 -lkernel32
+
+# Configurações do GTK4
+GTK_CFLAGS = $(shell pkg-config --cflags gtk4)
+GTK_LIBS = $(shell pkg-config --libs gtk4)
+
+CFLAGS = -Wall -Wextra -std=c99 -Iinclude $(GTK_CFLAGS)
+LDFLAGS = -lgdi32 -luser32 -lkernel32 $(GTK_LIBS)
 
 # Para ocultar o prompt de comando (console) ao rodar a janela principal,
 # descomente a linha abaixo (adicione -mwindows):
@@ -19,7 +24,7 @@ BIN_DIR = bin
 TESTS_DIR = test
 
 # Arquivos fonte e objetos correspondentes do app
-SRCS = $(wildcard $(SRC_DIR)/*.c)
+SRCS = $(filter-out $(SRC_DIR)/main_test.c, $(wildcard $(SRC_DIR)/*.c))
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 TARGET = $(BIN_DIR)/programa.exe
 
@@ -64,13 +69,13 @@ $(TEST_TARGET): $(TEST_OBJS) $(APP_OBJS) | $(BIN_DIR)
 
 # Criação das pastas de Build caso não existam
 $(BIN_DIR) $(OBJ_DIR):
-	@if not exist "$@" mkdir "$@"
+	@mkdir -p "$@"
 
 # Limpeza dos arquivos compilados
 clean:
 	@echo [CLEANING] Removendo arquivos temporários de build...
-	@if exist "$(OBJ_DIR)" rmdir /s /q "$(OBJ_DIR)"
-	@if exist "$(BIN_DIR)" rmdir /s /q "$(BIN_DIR)"
+	@rm -rf "$(OBJ_DIR)"
+	@rm -rf "$(BIN_DIR)"
 	@echo Limpeza concluída!
 
 # Compilar e executar o projeto automaticamente
