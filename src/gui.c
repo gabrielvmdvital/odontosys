@@ -43,6 +43,28 @@ typedef struct {
     GtkWidget *entry_telefone;   // Ponteiro para o campo de texto do telefone
 } CadastroCampos;
 
+/**
+ * @brief Estrutura que agrupa os componentes de entrada para a ficha de Pré-Diagnóstico.
+ * Representa os campos que mapeiam a struct ClinicalRecord do arquivo clinical.h.
+ */
+typedef struct {
+    GtkWidget *entry_height;        // Altura do paciente (m)
+    GtkWidget *entry_weight;        // Peso do paciente (kg)
+    GtkWidget *entry_age;           // Idade do paciente
+    GtkWidget *entry_anb;           // Relação maxila/mandíbula (ângulo)
+    GtkWidget *entry_coa;           // Comprimento da maxila (distância)
+    GtkWidget *dropdown_max_tipo;   // Tipo de Maxila (0=normal, 1=protruida, -1=retruida)
+    GtkWidget *entry_max_desvio;    // Desvio da maxila (em mm)
+    GtkWidget *entry_cogn;          // Comprimento mandibular (distância)
+    GtkWidget *entry_afai;          // Altura facial inferior (distância)
+    GtkWidget *entry_sngogn;        // Padrão vertical facial (ângulo)
+    GtkWidget *entry_na1_dist;      // Posição do incisivo superior (distância)
+    GtkWidget *entry_na1_ang;       // Inclinação do incisivo superior (ângulo)
+    GtkWidget *entry_na2_dist;      // Posição do incisivo inferior (distância)
+    GtkWidget *entry_na2_ang;       // Inclinação do incisivo inferior (ângulo)
+    GtkWidget *entry_perf_tegu;     // Formato do perfil (texto)
+} PreDiagCampos;
+
 // ============================================================================
 // FUNÇÕES DE CALLBACK (EVENTOS)
 // ============================================================================
@@ -157,7 +179,7 @@ static void on_btn_buscar_clicked(GtkButton *btn, gpointer user_data) {
 
 /**
  * @brief Callback disparado quando o botão "Salvar Ficha" da tela de Cadastro é clicado.
- * Captura os dados textuais inseridos na interface visual e imprime nos logs do sistema.
+ * Captura os dados textuais inseridos na interface visual e redireciona para a tela de pré-diagnóstico.
  */
 static void on_btn_salvar_cadastro_clicked(GtkButton *btn, gpointer user_data) {
     // 1. Recuperamos a struct com os campos de entrada através do ponteiro genérico
@@ -178,8 +200,60 @@ static void on_btn_salvar_cadastro_clicked(GtkButton *btn, gpointer user_data) {
     log_message(LOG_INFO, " |- Data de Nasc: %s", data_nasc);
     log_message(LOG_INFO, " |- Telefone: %s", telefone);
 
-    // 4. Feedback visual básico e transição automática de volta à Dashboard
-    log_message(LOG_INFO, "[GUI] Cadastro coletado com sucesso! Retornando ao menu...");
+    // 4. TRANSIÇÃO DE FLUXO: Avança para a tela de preenchimento cefalométrico/clínico
+    log_message(LOG_INFO, "[GUI] Dados cadastrais retidos. Avançando para a página de Pré-Diagnóstico...");
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "pre_diagnostico_page");
+}
+
+/**
+ * @brief Callback para o botão "Voltar" da Ficha de Pré-Diagnóstico.
+ * Retorna o usuário para a tela de cadastro básico do paciente.
+ */
+static void on_btn_voltar_pre_diag_clicked(GtkButton *btn, gpointer user_data) {
+    log_message(LOG_INFO, "[GUI] Retornando do Pré-Diagnóstico para a tela de Cadastro...");
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "cadastro_page");
+}
+
+/**
+ * @brief Callback disparado quando o botão "Gerar Diagnóstico" é clicado.
+ * Captura todos os inputs técnicos de ClinicalRecord para disponibilizar para a árvore de decisão futuramente.
+ */
+static void on_btn_gerar_diagnostico_clicked(GtkButton *btn, gpointer user_data) {
+    PreDiagCampos *campos = (PreDiagCampos *)user_data;
+
+    // 1. Coleta e decodificação do índice selecionado no GtkDropDown (0=Normal, 1=Protruída, 2=Retruída)
+    guint idx = gtk_drop_down_get_selected(GTK_DROP_DOWN(campos->dropdown_max_tipo));
+    int valor_maxila_tipo = 0; 
+    if (idx == 1) valor_maxila_tipo = 1;   // Protruída
+    if (idx == 2) valor_maxila_tipo = -1;  // Retruída
+
+    // 2. Impressão estruturada de diagnóstico nos logs do terminal
+    log_message(LOG_INFO, "[GUI] Coletando métricas estruturadas de ClinicalRecord para processamento:");
+    log_message(LOG_INFO, " |- Métricas Básicas: Altura: %sm | Peso: %skg | Idade: %s anos",
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_height)),
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_weight)),
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_age)));
+    log_message(LOG_INFO, " |- Cefalometria: ANB: %s° | COA: %smm | CO-GN: %smm",
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_anb)),
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_coa)),
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_cogn)));
+    log_message(LOG_INFO, " |- Maxila: Tipo Codificado: %d | Desvio Mapeado: %smm", 
+                valor_maxila_tipo, 
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_max_desvio)));
+    log_message(LOG_INFO, " |- Estrutura Facial: AFAI: %smm | SN.GO.GN: %s°",
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_afai)),
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_sngogn)));
+    log_message(LOG_INFO, " |- Incisivos Superiores: NA_Dist: %smm | NA_Ang: %s°",
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_na1_dist)),
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_na1_ang)));
+    log_message(LOG_INFO, " |- Incisivos Inferiores: NB_Dist: %smm | NB_Ang: %s°",
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_na2_dist)),
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_na2_ang)));
+    log_message(LOG_INFO, " |- Tecido Mole: Perfil Tegumentar: %s",
+                gtk_editable_get_text(GTK_EDITABLE(campos->entry_perf_tegu)));
+
+    // 3. Finaliza a operação retornando o sistema à Dashboard principal
+    log_message(LOG_INFO, "[GUI] Registro clínico consolidado com sucesso! Redirecionando...");
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
 }
 
@@ -188,7 +262,7 @@ static void on_btn_salvar_cadastro_clicked(GtkButton *btn, gpointer user_data) {
 // ============================================================================
 
 /**
- * @brief Constrói e organiza os elements visuais da Tela de Login.
+ * @brief Constrói e organiza os elementos visuais da Tela de Login.
  * @return Retorna um GtkWidget (GtkBox) contendo toda a interface de login pronta.
  */
 static GtkWidget* criar_tela_login(LoginCampos *campos) {
@@ -422,22 +496,166 @@ static GtkWidget* criar_tela_cadastro_pacientes(CadastroCampos *campos) {
     return vbox;
 }
 
+/**
+ * @brief Constrói a tela de preenchimento do Pré-Diagnóstico (Métricas Clínicas e Cefalométricas).
+ * Organiza os campos da struct ClinicalRecord em uma tabela simétrica (GtkGrid).
+ */
+static GtkWidget* criar_tela_pre_diagnostico(PreDiagCampos *campos) {
+    // Caixa principal vertical com rolagem embutida para telas menores
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_margin_top(vbox, 15);
+    gtk_widget_set_margin_bottom(vbox, 15);
+    gtk_widget_set_margin_start(vbox, 20);
+    gtk_widget_set_margin_end(vbox, 20);
+
+    // --- TOPO (Botão Voltar e Título Técnico) ---
+    GtkWidget *hbox_topo = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    GtkWidget *btn_voltar = gtk_button_new_with_label("⬅️ Voltar");
+    g_signal_connect(btn_voltar, "clicked", G_CALLBACK(on_btn_voltar_pre_diag_clicked), NULL);
+    gtk_box_append(GTK_BOX(hbox_topo), btn_voltar);
+
+    GtkWidget *lbl_titulo = gtk_label_new("Ficha de Pré-Diagnóstico Cefalométrico");
+    gtk_widget_set_hexpand(lbl_titulo, TRUE);
+    gtk_widget_set_halign(lbl_titulo, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(hbox_topo), lbl_titulo);
+    gtk_box_append(GTK_BOX(vbox), hbox_topo);
+
+    // --- CRIAÇÃO DA TABELA DE INPUTS (GtkGrid) ---
+    GtkWidget *grid = gtk_grid_new();
+    gtk_grid_set_row_spacing(GTK_GRID(grid), 8);
+    gtk_grid_set_column_spacing(GTK_GRID(grid), 15);
+    gtk_widget_set_margin_top(grid, 10);
+
+    // Coluna 1: Métricas Gerais Básicas
+    GtkWidget *lbl_h = gtk_label_new("Altura (m):");
+    gtk_widget_set_halign(lbl_h, GTK_ALIGN_START);
+    campos->entry_height = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_height), "Ex: 1.75");
+    gtk_grid_attach(GTK_GRID(grid), lbl_h, 0, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_height, 0, 1, 1, 1);
+
+    GtkWidget *lbl_w = gtk_label_new("Peso (kg):");
+    gtk_widget_set_halign(lbl_w, GTK_ALIGN_START);
+    campos->entry_weight = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_weight), "Ex: 72.5");
+    gtk_grid_attach(GTK_GRID(grid), lbl_w, 0, 2, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_weight, 0, 3, 1, 1);
+
+    GtkWidget *lbl_age = gtk_label_new("Idade:");
+    gtk_widget_set_halign(lbl_age, GTK_ALIGN_START);
+    campos->entry_age = gtk_entry_new();
+    gtk_grid_attach(GTK_GRID(grid), lbl_age, 0, 4, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_age, 0, 5, 1, 1);
+
+    GtkWidget *lbl_anb = gtk_label_new("Ángulo ANB (°):");
+    gtk_widget_set_halign(lbl_anb, GTK_ALIGN_START);
+    campos->entry_anb = gtk_entry_new();
+    gtk_grid_attach(GTK_GRID(grid), lbl_anb, 0, 6, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_anb, 0, 7, 1, 1);
+
+    GtkWidget *lbl_coa = gtk_label_new("Comprimento COA (mm):");
+    gtk_widget_set_halign(lbl_coa, GTK_ALIGN_START);
+    campos->entry_coa = gtk_entry_new();
+    gtk_grid_attach(GTK_GRID(grid), lbl_coa, 0, 8, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_coa, 0, 9, 1, 1);
+
+    GtkWidget *lbl_cogn = gtk_label_new("Comprimento CO-GN (mm):");
+    gtk_widget_set_halign(lbl_cogn, GTK_ALIGN_START);
+    campos->entry_cogn = gtk_entry_new();
+    gtk_grid_attach(GTK_GRID(grid), lbl_cogn, 0, 10, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_cogn, 0, 11, 1, 1);
+
+    // Coluna 2: Métricas Cefalometria Avançadas
+    GtkWidget *lbl_tipo = gtk_label_new("Tipo da Maxila:");
+    gtk_widget_set_halign(lbl_tipo, GTK_ALIGN_START);
+    campos->dropdown_max_tipo = gtk_drop_down_new_from_strings((const char *[]) {"Normal", "Protruída", "Retruída", NULL});
+    gtk_grid_attach(GTK_GRID(grid), lbl_tipo, 1, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->dropdown_max_tipo, 1, 1, 1, 1);
+
+    GtkWidget *lbl_desvio = gtk_label_new("Desvio Maxila (mm):");
+    gtk_widget_set_halign(lbl_desvio, GTK_ALIGN_START);
+    campos->entry_max_desvio = gtk_entry_new();
+    gtk_grid_attach(GTK_GRID(grid), lbl_desvio, 1, 2, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_max_desvio, 1, 3, 1, 1);
+
+    GtkWidget *lbl_afai = gtk_label_new("AFAI (mm):");
+    gtk_widget_set_halign(lbl_afai, GTK_ALIGN_START);
+    campos->entry_afai = gtk_entry_new();
+    gtk_grid_attach(GTK_GRID(grid), lbl_afai, 1, 4, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_afai, 1, 5, 1, 1);
+
+    GtkWidget *lbl_sngogn = gtk_label_new("SN.GO.GN (°):");
+    gtk_widget_set_halign(lbl_sngogn, GTK_ALIGN_START);
+    campos->entry_sngogn = gtk_entry_new();
+    gtk_grid_attach(GTK_GRID(grid), lbl_sngogn, 1, 6, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_sngogn, 1, 7, 1, 1);
+
+    GtkWidget *lbl_na1 = gtk_label_new("Incisivo Sup. NA (dist/ang):");
+    gtk_widget_set_halign(lbl_na1, GTK_ALIGN_START);
+    GtkWidget *hbox_na1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    campos->entry_na1_dist = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_na1_dist), "Dist (mm)");
+    campos->entry_na1_ang = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_na1_ang), "Âng (°)");
+    gtk_box_append(GTK_BOX(hbox_na1), campos->entry_na1_dist);
+    gtk_box_append(GTK_BOX(hbox_na1), campos->entry_na1_ang);
+    gtk_grid_attach(GTK_GRID(grid), lbl_na1, 1, 8, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), hbox_na1, 1, 9, 1, 1);
+
+    GtkWidget *lbl_na2 = gtk_label_new("Incisivo Inf. NB (dist/ang):");
+    gtk_widget_set_halign(lbl_na2, GTK_ALIGN_START);
+    GtkWidget *hbox_na2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    campos->entry_na2_dist = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_na2_dist), "Dist (mm)");
+    campos->entry_na2_ang = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_na2_ang), "Âng (°)");
+    gtk_box_append(GTK_BOX(hbox_na2), campos->entry_na2_dist);
+    gtk_box_append(GTK_BOX(hbox_na2), campos->entry_na2_ang);
+    gtk_grid_attach(GTK_GRID(grid), lbl_na2, 1, 10, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), hbox_na2, 1, 11, 1, 1);
+
+    // Linha de Largura Total Completa inferior (Perfil Tegumentar)
+    GtkWidget *lbl_perf = gtk_label_new("Perfil Tegumentar:");
+    gtk_widget_set_halign(lbl_perf, GTK_ALIGN_START);
+    campos->entry_perf_tegu = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_perf_tegu), "Ex: Perfil Convexo / Reto / Côncavo");
+    gtk_grid_attach(GTK_GRID(grid), lbl_perf, 0, 12, 2, 1);
+    gtk_grid_attach(GTK_GRID(grid), campos->entry_perf_tegu, 0, 13, 2, 1);
+
+    gtk_box_append(GTK_BOX(vbox), grid);
+
+    // --- BOTÃO DE PROCESSAMENTO FINAL ---
+    GtkWidget *btn_diagnostico = gtk_button_new_with_label("🧠 Gerar Pré-Diagnóstico");
+    gtk_widget_set_margin_top(btn_diagnostico, 15);
+    gtk_widget_set_size_request(btn_diagnostico, -1, 42);
+    g_signal_connect(btn_diagnostico, "clicked", G_CALLBACK(on_btn_gerar_diagnostico_clicked), campos);
+    gtk_box_append(GTK_BOX(vbox), btn_diagnostico);
+
+    // Adiciona uma barra de rolagem (ScrolledWindow) para o formulário caber confortavelmente em qualquer resolução
+    GtkWidget *scrolled_window = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolled_window), vbox);
+    gtk_widget_set_vexpand(scrolled_window, TRUE);
+
+    return scrolled_window;
+}
+
 // ============================================================================
 // INICIALIZAÇÃO E FLUXO PRINCIPAL DO GTK
 // ============================================================================
 
 /**
- * @brief Evento principal de ativação do GTK. Constrói a janela e a pilha de telas.
+ * @brief Evento principal de activation do GTK. Constrói a janela e a pilha de telas.
  */
 static void on_app_activate(GtkApplication *app, gpointer user_data) {
     // Instancia as estruturas dos campos de forma estática para persistir na memória do app
     static LoginCampos campos_login;
     static CadastroCampos campos_cadastro;
+    static PreDiagCampos campos_pre_diag; // Referência estável de memória para a tela clínica
 
     // 1. Criação da janela principal do Windows
     GtkWidget *window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "ODONTOSYS");
-    gtk_window_set_default_size(GTK_WINDOW(window), 500, 450); // Ajuste fino no tamanho vertical para o formulário caber bem
+    gtk_window_set_default_size(GTK_WINDOW(window), 550, 520); // Janela levemente redimensionada para acomodar o grid confortavelmente
 
     // 2. Criação do componente GtkStack (Gerenciador de Empilhamento de Telas)
     g_stack = gtk_stack_new();
@@ -450,13 +668,15 @@ static void on_app_activate(GtkApplication *app, gpointer user_data) {
     GtkWidget *layout_login = criar_tela_login(&campos_login);
     GtkWidget *layout_dashboard = criar_tela_dashboard();
     GtkWidget *layout_prontuarios = criar_tela_prontuarios();
-    GtkWidget *layout_cadastro = criar_tela_cadastro_pacientes(&campos_cadastro); // <-- INCLUÍDO NO PASSO 3
+    GtkWidget *layout_cadastro = criar_tela_cadastro_pacientes(&campos_cadastro); 
+    GtkWidget *layout_pre_diag = criar_tela_pre_diagnostico(&campos_pre_diag); // <-- NOVA TELA INSTANCIADA
 
     // 4. Adicionando as telas dentro do Stack e dando um "nome" de identificação para cada uma
     gtk_stack_add_named(GTK_STACK(g_stack), layout_login, "login_page");
     gtk_stack_add_named(GTK_STACK(g_stack), layout_dashboard, "dashboard_page");
     gtk_stack_add_named(GTK_STACK(g_stack), layout_prontuarios, "prontuarios_page");
-    gtk_stack_add_named(GTK_STACK(g_stack), layout_cadastro, "cadastro_page"); // <-- INCLUÍDO NO PASSO 4
+    gtk_stack_add_named(GTK_STACK(g_stack), layout_cadastro, "cadastro_page"); 
+    gtk_stack_add_named(GTK_STACK(g_stack), layout_pre_diag, "pre_diagnostico_page"); // <-- ADICIONADO AO STACK
 
     // 5. Define qual página o Stack deve exibir assim que o programa abrir
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "login_page");
