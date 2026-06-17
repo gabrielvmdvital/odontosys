@@ -9,13 +9,28 @@
 // REGRAS DE CLASSIFICAÇÃO ORTODÔNTICA
 // 1) ANB (Classe esquelética): 1-4 = Classe I | >4 = Classe II | <1 = Classe III
 // 2) CoA + CoGn: Comparação com tabela de McNamara -> Mandíbula reduzida / normal / aumentada
-// 3) AFAI (Padrão crescimento facial): aumentada = vertical | normal = equilibrado | diminuída = horizontal
-// 4) SNGoGn (Padrão crescimento): aumentado = vertical | normal = equilibrado | diminuído = horizontal (!! Verificar como utilizar esse !!)
-// 5) 1-NA (Posição incisivo sup): 3-5 = normal | >5 = protruído | <3 = retruído
-// 6) 1.NA (Inclinação incisivo sup): 24-25 = normal | >25 = inclinado | <23 = verticalizado
-// 7) 1-NB (Posição incisivo inf): 3-5 = normal | >5 = protruído | <3 = retruído
-// 8) 1.NB (Inclinação incisivo inf): 24-26 = normal | >26 = inclinado | <24 = verticalizado
-// 9) Perf_tegument (Perfil facial): reto | convexo | concavo | normal
+// 3) Padrão crescimento facial: vertical | equilibrado | horizontal
+// Onde: AFAI (mm) -> aumentado | normal | reduzido; e SNGoGn (graus) -> aumentado | normal | reduzido
+/*      MAPA DE CRUZA-DADOS (Padrão de Crescimento Facial) gerado com auxílio de IA:
+        ==============================================================================
+        *   AFAI (McNamara)  |   SNGoGn (Ângulo)   |  PADRÃO DE CRESCIMENTO (Veredito)
+        * -------------------|---------------------|----------------------------------
+        *   aumentada        |   aumentado         |  "vertical"    (Concordância +)
+        *   normal           |   aumentado         |  "vertical"    (Tendência Óssea)
+        *   aumentada        |   normal            |  "vertical"    (Tendência Linear)
+        * -------------------|---------------------|----------------------------------
+        *   diminuida        |   diminuido         |  "horizontal"  (Concordância -)
+        *   normal           |   diminuido         |  "horizontal"  (Tendência Óssea)
+        *   diminuida        |   normal            |  "horizontal"  (Tendência Linear)
+        * -------------------|---------------------|----------------------------------
+        *   normal           |   normal            |  "equilibrado" (Harmonia Total)
+        ==============================================================================
+*/
+// 4) 1-NA (Posição incisivo sup): 3-5 = normal | >5 = protruído | <3 = retruído
+// 5) 1.NA (Inclinação incisivo sup): 24-25 = normal | >25 = inclinado | <23 = verticalizado
+// 6) 1-NB (Posição incisivo inf): 3-5 = normal | >5 = protruído | <3 = retruído
+// 7) 1.NB (Inclinação incisivo inf): 24-26 = normal | >26 = inclinado | <24 = verticalizado
+// 8) Perf_tegument (Perfil facial): reto | convexo | concavo | normal
 
 /* Exemplo de Pré-Diagnóstico:
         Paciente Classe I esquelética, com mandíbula reduzida, padrão de crescimento facial vertical,
@@ -106,28 +121,51 @@ void clinical_formular_diag(ClinicalRecord *record) {
 // 3) Padrão de Crescimento Facial (afai, coa_corrigido + Tabela de McNamamra)
         char str_cresc_fac[20];
 
-        // Repetir a busca pela tabela de McNamara
+        // Será dividido em duas partes:
+        char str_afai[20], str_sngogn[20];
+
+        // AFAI, pela tabela de McNamara (assim como foi usada para o tamanho da mandíbula)
         for (int i = 0; i<29; i++) {
                 if (coa_corrigido == mcNam[i][0]) {
-                        // Crescimento Facial Equilibrado
+                        // AFAI Normal
                         if (mcNam[i][3] <= record->afai && record->afai <= mcNam[i][4]) // afai do paciente entre os valores ideais
-                                strcpy(str_cresc_fac, "equilibrado");
+                                strcpy(str_afai, "normal");
 
-                        // Crescimento Facial Vertical
+                        // AFAI Aumentado
                         else if (mcNam[i][4] < record->afai) // afai do paciente acima dos valores ideais
-                                strcpy(str_cresc_fac, "vertical");
+                                strcpy(str_afai, "aumentado");
                         
-                        // Crescimento Facial Horizontal
+                        // AFAI Reduzido
                         else if (record->afai < mcNam[i][3]) // afai do paciente abaixo dos valores ideais
-                                strcpy(str_cresc_fac, "horizontal");
+                                strcpy(str_afai, "diminuido");
                 }
         }
 
+        // SNGoGn, baseado no Padrão USP/PROFIS
+        if (record->sngogn > 36.1)
+                strcpy(str_sngogn, "aumentado");
 
-// 4) Padrão crescimento (sngocn) | OBS: Possivelmente será um só com o item 3)
+        else if (record->sngogn < 26.9)
+                strcpy(str_sngogn, "diminuido");
+
+        else
+                strcpy(str_sngogn, "normal");
+
+        // Análise Final do Padrão de crescimento (salvando em str_cresc_fac)
+        // Se uma das variáveis é aumentada
+        if (strcmp(str_afai, "aumentado") == 0 || strcmp(str_sngogn, "aumentado") == 0) // Se um OU (||) o outro acontecer
+                strcpy(str_cresc_fac, "vertical");
+        
+        // Se uma das variáveis diminuída
+        else if (strcmp(str_afai, "diminuido") == 0 || strcmp(str_sngogn, "diminuido") == 0)
+                strcpy(str_cresc_fac, "horizontal");
+
+        // O que sobra: ambas normais
+        else
+                strcpy(str_cresc_fac, "equilibrado");
 
 
-// 5) Posição incisivo sup (variável: na1_dist)
+// 4) Posição incisivo sup (variável: na1_dist)
         char str_pos_incsup[20];
         if (3 <= record->na1_dist <= 5)
                 strcpy(str_pos_incsup, "normal");
@@ -138,26 +176,27 @@ void clinical_formular_diag(ClinicalRecord *record) {
         else 
                 strcpy(str_pos_incsup, "retruido");
 
-// 6) Inclinação incisivo sup (na1_ang)
+// 5) Inclinação incisivo sup (na1_ang)
         char str_inc_incsup[20];
 
 
-// 7) Posição incisivo inf (na2_dist)
+// 6) Posição incisivo inf (na2_dist)
         char str_pos_incinf[20];
 
 
-// 8) Inclinação incisivo inf (na2_ang)
+// 7) Inclinação incisivo inf (na2_ang)
         char str_inc_incinf[20];
 
 
-// 9) Perfil facial (perf_tegument)
+// 8) Perfil facial (perf_tegument)
         char str_perf_fac[20];
+        strcpy(str_perf_fac, record->perf_tegument);
 
 
 
 
 // No fim, juntar tudo em uma string para copiar em pre_diagnosis.
-sprintf(record->pre_diagnosis, "Paciente %s, ...", str_classe);
+sprintf(record->pre_diagnosis, "Paciente %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
 }
 
 int save_clinical_record(ClinicalRecord *record) {
