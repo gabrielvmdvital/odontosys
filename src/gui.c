@@ -72,6 +72,33 @@ typedef struct {
     GtkWidget *frame_resultado;     // Guarda o container da caixinha gráfica
 } PreDiagCampos;
 
+/**
+ * @brief Estrutura que agrupa os componentes do prontuário, agora como label, que diferente do entry, são só de exibição.
+ */
+typedef struct {
+    GtkWidget *lbl_nome;
+    GtkWidget *lbl_email;
+    GtkWidget *lbl_cpf;
+    GtkWidget *lbl_data_nasc;
+    GtkWidget *lbl_telefone;
+    GtkWidget *lbl_height;
+    GtkWidget *lbl_weight;
+    GtkWidget *lbl_age;
+    GtkWidget *lbl_anb;
+    GtkWidget *lbl_perfil;
+    GtkWidget *lbl_cogn;
+    GtkWidget *lbl_coa;
+    GtkWidget *lbl_afai;
+    GtkWidget *lbl_sngogn;
+    GtkWidget *lbl_na1_dist;
+    GtkWidget *lbl_na1_ang;
+    GtkWidget *lbl_na2_dist;
+    GtkWidget *lbl_na2_ang;
+    GtkWidget *lbl_max_tipo;
+    GtkWidget *lbl_max_desvio;
+} ProntuarioViewCampos;
+static ProntuarioViewCampos g_pron_view; // labels da tela de prontuario que serão preenchidas no criar_tela_prontuario_view (futuro)
+
 // ============================================================================
 // FUNÇÕES DE CALLBACK (EVENTOS)
 // ============================================================================
@@ -330,7 +357,37 @@ static void on_btn_gerar_diagnostico_clicked(GtkButton *btn, gpointer user_data)
     g_signal_handlers_disconnect_by_func(btn, G_CALLBACK(on_btn_gerar_diagnostico_clicked), campos);
     g_signal_connect(btn, "clicked", G_CALLBACK(on_btn_concluir_fluxo_clicked), campos);
 }
+/**
+ * @brief Callback para quando é clicado em um paciente da lista de prontuários.
+ * Por enquanto, apenas navega para a tela de visualização — os labels mantêm o
+ * placeholder "—" até a integração real com o backend/banco de dados.
+ */
+static void on_prontuario_row_activated(GtkListBox *listbox, GtkListBoxRow *row, gpointer user_data) {
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "prontuario_view_page");
+}
+/**
+ * @brief callback do botão voltar da tela de prontuarios 
+ */
+static void on_btn_voltar_pron_view_clicked(GtkButton *btn, gpointer user_data) {
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "prontuarios_page");
+}
 
+/**
+ * @brief callback pro botão editar (para o futuro)
+ */
+static void on_btn_editar_pron_clicked(GtkButton *btn, gpointer user_data) {
+    log_message(LOG_INFO, "[GUI] Editar prontuário — funcionalidade futura.");
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "cadastro_page"); //leva para uma nova tela de cadastro, pois a edição será implementada quando o gui for integrado ao banco de dados
+}
+
+/**
+ * @brief callback do botão excluir  (ainda somente visual)
+ */
+
+static void on_btn_excluir_pron_clicked(GtkButton *btn, gpointer user_data) {
+    log_message(LOG_INFO, "[GUI] Excluir prontuário — funcionalidade futura.");
+    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "prontuarios_page");
+}
 // ============================================================================
 // CONSTRUTORES DE INTERFACES (TELAS)
 // ============================================================================
@@ -467,9 +524,10 @@ static GtkWidget* criar_tela_prontuarios(void) {
     gtk_widget_set_halign(lbl_lista, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(vbox), lbl_lista);
 
-    busca.listbox = gtk_list_box_new(); 
-    gtk_widget_set_vexpand(busca.listbox, TRUE); 
-    
+    busca.listbox = gtk_list_box_new(); // Salva na struct 
+    g_signal_connect(busca.listbox, "row-activated", G_CALLBACK(on_prontuario_row_activated), NULL);
+    gtk_widget_set_vexpand(busca.listbox, TRUE); // Faz a lista ocupar o espaço restante
+    //
     for (int i = 0; pacientes_mock[i] != NULL; i++) {
         gtk_list_box_append(GTK_LIST_BOX(busca.listbox), gtk_label_new(pacientes_mock[i]));
     }
@@ -479,6 +537,142 @@ static GtkWidget* criar_tela_prontuarios(void) {
 
     gtk_box_append(GTK_BOX(vbox), busca.listbox);
 
+    return vbox;
+}
+/**
+ * @brief constroi a tela de visualização do prontuario do paciente selecionado.
+ */
+static GtkWidget* criar_tela_prontuario_view(void) {
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+    gtk_widget_set_margin_top(vbox, 20);
+    gtk_widget_set_margin_bottom(vbox, 20);
+    gtk_widget_set_margin_start(vbox, 20);
+    gtk_widget_set_margin_end(vbox, 20);
+
+    // parte de cima da tela
+    GtkWidget *hbox_topo = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    GtkWidget *btn_voltar = gtk_button_new_with_label("⬅️ Voltar");
+    g_signal_connect(btn_voltar, "clicked", G_CALLBACK(on_btn_voltar_pron_view_clicked), NULL);
+    gtk_box_append(GTK_BOX(hbox_topo), btn_voltar);
+    GtkWidget *lbl_titulo = gtk_label_new("Prontuário do Paciente");
+    gtk_widget_set_hexpand(lbl_titulo, TRUE);
+    gtk_widget_set_halign(lbl_titulo, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(hbox_topo), lbl_titulo);
+    gtk_box_append(GTK_BOX(vbox), hbox_topo);
+
+    // Dados pessoais não relacionados ainda com a cefalometria
+    // titulo
+    GtkWidget *lbl_sec1 = gtk_label_new("── Dados Pessoais ──");
+    gtk_widget_set_halign(lbl_sec1, GTK_ALIGN_START);
+    gtk_widget_set_margin_top(lbl_sec1, 10);
+    gtk_box_append(GTK_BOX(vbox), lbl_sec1);
+
+    // nome
+    g_pron_view.lbl_nome = gtk_label_new("Nome: —");
+    gtk_widget_set_halign(g_pron_view.lbl_nome, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_nome);
+
+    //email
+    g_pron_view.lbl_email = gtk_label_new("E-mail: —");
+    gtk_widget_set_halign(g_pron_view.lbl_email, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_email);
+
+    //cpf
+    g_pron_view.lbl_cpf = gtk_label_new("CPF: —");
+    gtk_widget_set_halign(g_pron_view.lbl_cpf, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_cpf);
+
+    //data de nasc
+    g_pron_view.lbl_data_nasc = gtk_label_new("Data de Nasc.: —");
+    gtk_widget_set_halign(g_pron_view.lbl_data_nasc, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_data_nasc);
+
+    //telefone
+    g_pron_view.lbl_telefone = gtk_label_new("Telefone: —");
+    gtk_widget_set_halign(g_pron_view.lbl_telefone, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_telefone);
+
+    // dados do exame 
+    GtkWidget *lbl_sec2 = gtk_label_new("── Dados da Cefalómetria──");
+    gtk_widget_set_halign(lbl_sec2, GTK_ALIGN_START);
+    gtk_widget_set_margin_top(lbl_sec2, 10);
+    gtk_box_append(GTK_BOX(vbox), lbl_sec2);
+
+    g_pron_view.lbl_height = gtk_label_new("Altura: —");
+    gtk_widget_set_halign(g_pron_view.lbl_height, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_height);
+
+    g_pron_view.lbl_weight = gtk_label_new("Peso: —");
+    gtk_widget_set_halign(g_pron_view.lbl_weight, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_weight);
+
+    g_pron_view.lbl_age = gtk_label_new("Idade: —");
+    gtk_widget_set_halign(g_pron_view.lbl_age, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_age);
+
+    g_pron_view.lbl_anb = gtk_label_new("Ângulo ANB: —");
+    gtk_widget_set_halign(g_pron_view.lbl_anb, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_anb);
+
+    g_pron_view.lbl_coa = gtk_label_new("COA: —");
+    gtk_widget_set_halign(g_pron_view.lbl_coa, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_coa);
+
+    g_pron_view.lbl_cogn = gtk_label_new("CO-GN: —");
+    gtk_widget_set_halign(g_pron_view.lbl_cogn, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_cogn);
+
+    g_pron_view.lbl_afai = gtk_label_new("AFAI: —");
+    gtk_widget_set_halign(g_pron_view.lbl_afai, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_afai);
+
+    g_pron_view.lbl_sngogn = gtk_label_new("SN.GO.GN: —");
+    gtk_widget_set_halign(g_pron_view.lbl_sngogn, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_sngogn);
+
+    g_pron_view.lbl_na1_dist = gtk_label_new("NA Sup. Dist: —");
+    gtk_widget_set_halign(g_pron_view.lbl_na1_dist, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_na1_dist);
+
+    g_pron_view.lbl_na1_ang = gtk_label_new("NA Sup. Âng: —");
+    gtk_widget_set_halign(g_pron_view.lbl_na1_ang, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_na1_ang);
+
+    g_pron_view.lbl_na2_dist = gtk_label_new("NB Inf. Dist: —");
+    gtk_widget_set_halign(g_pron_view.lbl_na2_dist, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_na2_dist);
+
+    g_pron_view.lbl_na2_ang = gtk_label_new("NB Inf. Âng: —");
+    gtk_widget_set_halign(g_pron_view.lbl_na2_ang, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_na2_ang);
+
+    g_pron_view.lbl_max_tipo = gtk_label_new("Tipo da Maxila: —");
+    gtk_widget_set_halign(g_pron_view.lbl_max_tipo, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_max_tipo);
+
+    g_pron_view.lbl_max_desvio = gtk_label_new("Desvio Maxila: —");
+    gtk_widget_set_halign(g_pron_view.lbl_max_desvio, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_max_desvio);
+
+    g_pron_view.lbl_perfil = gtk_label_new("Perfil Tegumentar: —");
+    gtk_widget_set_halign(g_pron_view.lbl_perfil, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(vbox), g_pron_view.lbl_perfil);
+
+    // botões de excluir e editar 
+    GtkWidget *hbox_acoes = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_margin_top(hbox_acoes, 20);
+
+    GtkWidget *btn_editar = gtk_button_new_with_label("✏️ Editar");
+    gtk_widget_set_hexpand(btn_editar, TRUE);
+    g_signal_connect(btn_editar, "clicked", G_CALLBACK(on_btn_editar_pron_clicked), NULL);
+    gtk_box_append(GTK_BOX(hbox_acoes), btn_editar);
+
+    GtkWidget *btn_excluir = gtk_button_new_with_label("🗑️ Excluir");
+    gtk_widget_set_hexpand(btn_excluir, TRUE);
+    g_signal_connect(btn_excluir, "clicked", G_CALLBACK(on_btn_excluir_pron_clicked), NULL);
+    gtk_box_append(GTK_BOX(hbox_acoes), btn_excluir);
+
+    gtk_box_append(GTK_BOX(vbox), hbox_acoes);
     return vbox;
 }
 
@@ -762,13 +956,15 @@ static void on_app_activate(GtkApplication *app, gpointer user_data) {
     GtkWidget *layout_login = criar_tela_login(&campos_login);
     GtkWidget *layout_dashboard = criar_tela_dashboard();
     GtkWidget *layout_prontuarios = criar_tela_prontuarios();
+    GtkWidget *layout_pron_view = criar_tela_prontuario_view();
     GtkWidget *layout_cadastro = criar_tela_cadastro_pacientes(&g_campos_cadastro); 
-    GtkWidget *layout_pre_diag = criar_tela_pre_diagnostico(&campos_pre_diag); 
+    GtkWidget *layout_pre_diag = criar_tela_pre_diagnostico(&campos_pre_diag); // <-- NOVA TELA INSTANCIADA
 
     // 4. Adicionando as telas dentro do Stack e dando um "nome" de identificação para cada uma
     gtk_stack_add_named(GTK_STACK(g_stack), layout_login, "login_page");
     gtk_stack_add_named(GTK_STACK(g_stack), layout_dashboard, "dashboard_page");
     gtk_stack_add_named(GTK_STACK(g_stack), layout_prontuarios, "prontuarios_page");
+    gtk_stack_add_named(GTK_STACK(g_stack), layout_pron_view, "prontuario_view_page");
     gtk_stack_add_named(GTK_STACK(g_stack), layout_cadastro, "cadastro_page"); 
     gtk_stack_add_named(GTK_STACK(g_stack), layout_pre_diag, "pre_diagnostico_page"); 
 
