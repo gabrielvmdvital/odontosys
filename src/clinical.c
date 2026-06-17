@@ -51,7 +51,17 @@ void clinical_formular_diag(ClinicalRecord *record) {
         else
                 strcpy(str_classe, "Classe III");
 
-// 2) Tamanho da Mandíbula (coa, maxila_tipo, maxila_desvio + cogn + Tabela de McNamara)
+// 2) Classificação Maxila (maxila_tipo)
+        char str_maxila[20];
+
+        if (record->maxila_tipo == 0)
+                strcpy(str_maxila, "bem posicionada");
+        else if (record->maxila_tipo == 1)
+                strcpy(str_maxila, "protruida");
+        else if (record->maxila_tipo == -1)
+                strcpy(str_maxila, "retruida");
+
+// 3) Tamanho da Mandíbula (coa, maxila_tipo, maxila_desvio + cogn + Tabela de McNamara)
         char str_tam_mand[20];
         // Receber Coa e corrigir proporcinalmente ao desvio da mandibula
         int coa_corrigido;
@@ -118,7 +128,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 }
         }
 
-// 3) Padrão de Crescimento Facial (afai, coa_corrigido + Tabela de McNamamra)
+// 4) Padrão de Crescimento Facial (afai, coa_corrigido + Tabela de McNamamra)
         char str_cresc_fac[20];
 
         // Será dividido em duas partes:
@@ -165,9 +175,10 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_cresc_fac, "equilibrado");
 
 
-// 4) Posição incisivo sup (variável: na1_dist)
+// 5) Posição incisivo sup (variável: na1_dist)
         char str_pos_incsup[20];
-        if (3 <= record->na1_dist <= 5)
+
+        if (record->na1_dist >= 3 && record->na1_dist <= 5)
                 strcpy(str_pos_incsup, "normal");
 
         else if (record->na1_dist > 5)
@@ -176,19 +187,30 @@ void clinical_formular_diag(ClinicalRecord *record) {
         else 
                 strcpy(str_pos_incsup, "retruido");
 
-// 5) Inclinação incisivo sup (na1_ang)
+// 6) Inclinação incisivo sup (medida angular: na1_ang)
         char str_inc_incsup[20];
 
+        //1.NA (medida angular) 24-25 = incisivo superior com boa inclinação
+        if (record->na1_ang >= 23.0 && record->na1_ang <= 25.0)
+                strcpy(str_inc_incsup, "inclinacao normal");
 
-// 6) Posição incisivo inf (na2_dist)
+        else if (record->na1_ang > 25.0)
+                strcpy(str_inc_incsup, "inclinado para vestibular");
+                
+        else
+                strcpy(str_inc_incsup, "verticalizado");
+
+
+// 7) Posição incisivo inf (na2_dist)
         char str_pos_incinf[20];
 
 
-// 7) Inclinação incisivo inf (na2_ang)
+
+// 8) Inclinação incisivo inf (na2_ang)
         char str_inc_incinf[20];
 
 
-// 8) Perfil facial (perf_tegument)
+// 9) Perfil facial (perf_tegument)
         char str_perf_fac[20];
         strcpy(str_perf_fac, record->perf_tegument);
 
