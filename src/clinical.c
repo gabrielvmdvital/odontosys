@@ -217,7 +217,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
 // 8) Inclinação incisivo inf (nb1_ang)
         char str_inc_incinf[20];
-        
+
         // 1.NB normal = 34-26 graus
         if (record->nb1_ang >= 24.0 && record->nb1_ang <= 26.0)
                 strcpy(str_inc_incinf, "com boa inclinação");
@@ -234,7 +234,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
 
 // No fim, juntar tudo em uma string para copiar em pre_diagnosis.
-sprintf(record->pre_diagnosis, "Paciente %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
+sprintf(record->pre_diagnosis, "Paciente %s, com maxila %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_maxila, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
 }
 
 int save_clinical_record(ClinicalRecord *record) {
