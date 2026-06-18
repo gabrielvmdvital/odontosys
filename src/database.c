@@ -45,7 +45,7 @@ void database_init(void) {
     if (!fc) {
         fc = fopen(CLINICAL_FILE, "w");
         if (fc) {
-            fprintf(fc, "clinical_id;patient_id;dentist_id;diag_date;idade;anb;coa;maxila_tipo;maxila_desvio;cogn;afai;sngogn;na1_dist;na1_ang;na2_dist;na2_ang;perf_tegument;pre_diagnostico\n");
+            fprintf(fc, "clinical_id;patient_id;dentist_id;diag_date;idade;anb;coa;maxila_tipo;maxila_desvio;cogn;afai;sngogn;na1_dist;na1_ang;nb1_dist;nb1_ang;perf_tegument;pre_diagnostico\n");
             fclose(fc);
         }
     } else {

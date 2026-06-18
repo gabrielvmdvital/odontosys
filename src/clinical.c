@@ -56,8 +56,10 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
         if (record->maxila_tipo == 0)
                 strcpy(str_maxila, "bem posicionada");
+
         else if (record->maxila_tipo == 1)
                 strcpy(str_maxila, "protruida");
+
         else if (record->maxila_tipo == -1)
                 strcpy(str_maxila, "retruida");
 
@@ -190,7 +192,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 // 6) Inclinação incisivo sup (medida angular: na1_ang)
         char str_inc_incsup[20];
 
-        //1.NA (medida angular) 24-25 = incisivo superior com boa inclinação
+        //1.NA normal 23-25 graus
         if (record->na1_ang >= 23.0 && record->na1_ang <= 25.0)
                 strcpy(str_inc_incsup, "inclinacao normal");
 
@@ -201,24 +203,38 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_inc_incsup, "verticalizado");
 
 
-// 7) Posição incisivo inf (na2_dist)
+// 7) Posição incisivo inf (nb1_dist)
         char str_pos_incinf[20];
 
+        if (record->nb1_dist >= 3.0 && record->nb1_dist <= 5.0)
+                strcpy(str_pos_incinf, "bem posicionado");
 
+        else if (record->nb1_dist < 3.0)
+                strcpy(str_pos_incinf, "retruido");
 
-// 8) Inclinação incisivo inf (na2_ang)
+        else
+                strcpy(str_pos_incinf, "protruido");
+
+// 8) Inclinação incisivo inf (nb1_ang)
         char str_inc_incinf[20];
 
+        // 1.NB normal = 34-26 graus
+        if (record->nb1_ang >= 24.0 && record->nb1_ang <= 26.0)
+                strcpy(str_inc_incinf, "com boa inclinação");
+
+        else if (record->nb1_ang < 24.0)
+                strcpy(str_inc_incinf, "verticalizados");
+
+        else
+                strcpy(str_inc_incinf, "inclinado para vestibular");
 
 // 9) Perfil facial (perf_tegument)
         char str_perf_fac[20];
         strcpy(str_perf_fac, record->perf_tegument);
 
 
-
-
 // No fim, juntar tudo em uma string para copiar em pre_diagnosis.
-sprintf(record->pre_diagnosis, "Paciente %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
+sprintf(record->pre_diagnosis, "Paciente %s, com maxila %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_maxila, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
 }
 
 int save_clinical_record(ClinicalRecord *record) {
@@ -243,8 +259,8 @@ int save_clinical_record(ClinicalRecord *record) {
         record->sngogn,
         record->na1_dist,
         record->na1_ang,
-        record->na2_dist,
-        record->na2_ang,
+        record->nb1_dist,
+        record->nb1_ang,
         record->perf_tegument,
         record->pre_diagnosis
     );
@@ -314,8 +330,8 @@ ClinicalRecord* load_clinical_records(uint64_t patient_id, int *count) {
             records[current].sngogn = atof(fields[11]);
             records[current].na1_dist = atof(fields[12]);
             records[current].na1_ang = atof(fields[13]);
-            records[current].na2_dist = atof(fields[14]);
-            records[current].na2_ang = atof(fields[15]);
+            records[current].nb1_dist = atof(fields[14]);
+            records[current].nb1_ang = atof(fields[15]);
             strcpy(records[current].perf_tegument, fields[16]);
             strcpy(records[current].pre_diagnosis, fields[17]);
             current++;
