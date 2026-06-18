@@ -201,12 +201,12 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_inc_incsup, "verticalizado");
 
 
-// 7) Posição incisivo inf (na2_dist)
+// 7) Posição incisivo inf (nb1_dist)
         char str_pos_incinf[20];
 
 
 
-// 8) Inclinação incisivo inf (na2_ang)
+// 8) Inclinação incisivo inf (nb1_ang)
         char str_inc_incinf[20];
 
 
@@ -243,8 +243,8 @@ int save_clinical_record(ClinicalRecord *record) {
         record->sngogn,
         record->na1_dist,
         record->na1_ang,
-        record->na2_dist,
-        record->na2_ang,
+        record->nb1_dist,
+        record->nb1_ang,
         record->perf_tegument,
         record->pre_diagnosis
     );
@@ -314,8 +314,8 @@ ClinicalRecord* load_clinical_records(uint64_t patient_id, int *count) {
             records[current].sngogn = atof(fields[11]);
             records[current].na1_dist = atof(fields[12]);
             records[current].na1_ang = atof(fields[13]);
-            records[current].na2_dist = atof(fields[14]);
-            records[current].na2_ang = atof(fields[15]);
+            records[current].nb1_dist = atof(fields[14]);
+            records[current].nb1_ang = atof(fields[15]);
             strcpy(records[current].perf_tegument, fields[16]);
             strcpy(records[current].pre_diagnosis, fields[17]);
             current++;

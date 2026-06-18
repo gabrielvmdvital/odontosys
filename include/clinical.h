@@ -23,8 +23,8 @@ typedef struct {
     float sngogn;                       /**< Padrão vertical facial (ângulo) */
     float na1_dist;                     /**< Posição do incisivo superior (distância) */
     float na1_ang;                      /**< Inclinação do incisivo superior (ângulo) */
-    float na2_dist;                     /**< Posição do incisivo inferior (distância) */
-    float na2_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
+    float nb1_dist;                     /**< Posição do incisivo inferior (distância) */
+    float nb1_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
     char perf_tegument[50];             /**< Formato do perfil (texto) */
     char pre_diagnosis[500];            /**< Diagnóstico obtido através da árvore de decisão */
 } ClinicalRecord;
