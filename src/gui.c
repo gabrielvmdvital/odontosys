@@ -108,10 +108,10 @@ static ProntuarioViewCampos g_pron_view; // labels da tela de prontuario que ser
  * Esta função captura os textos e faz a transição de tela usando o GtkStack.
  */
 static void on_btn_entrar_clicked(GtkButton *btn, gpointer user_data) {
-    // 1. Recuperamos a struct com os campos de texto através do ponteiro genérico
+    // 1. Recupera-se a struct com os campos de texto atraves do ponteiro generico
     LoginCampos *campos = (LoginCampos *)user_data;
 
-    // 2. Extraímos as strings que o usuário digitou
+    // 2. Extrai as strings que o usuario digitou
     const char *usuario = gtk_editable_get_text(GTK_EDITABLE(campos->entry_usuario));
     const char *senha = gtk_editable_get_text(GTK_EDITABLE(campos->entry_senha));
 
@@ -119,9 +119,9 @@ static void on_btn_entrar_clicked(GtkButton *btn, gpointer user_data) {
     log_message(LOG_INFO, "[GUI] Botão Entrar Clicado.");
     log_message(LOG_INFO, "[GUI] Usuário inserido: %s", usuario);
     
-    // 4. TRANSIÇÃO DE TELA (O Segredo do GtkStack):
-    // Como o 'g_stack' é global, nós dizemos para ele mudar a página visível 
-    // para a página que batizamos de "dashboard_page".
+    // 4. TRANSICAO DE TELA (O Segredo do GtkStack):
+    // Como o 'g_stack' e global, define-se a mudanca para a pagina visivel 
+    // designada como "dashboard_page".
     // Sem validação por enquanto, conforme o escopo do Trello.
     gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "dashboard_page");
 }
@@ -188,7 +188,7 @@ static void on_btn_buscar_clicked(GtkButton *btn, gpointer user_data) {
         gtk_list_box_remove(GTK_LIST_BOX(busca->listbox), paciente);
     }
 
-    // Aqui usamos o for para testar se o digitado(busca) faz parte da listbox e tratamos o texto para que aceite maiusculas e minusculas.
+    // Utiliza-se laco de repeticao para verificar se o texto de busca esta na listbox, tratando para aceitar maiusculas e minusculas.
     gchar *busca_lower = g_utf8_strdown(texto, -1);
     int encontrou = 0;
 
@@ -216,10 +216,10 @@ static void on_btn_buscar_clicked(GtkButton *btn, gpointer user_data) {
  * Captura os dados textuais inseridos na interface visual e redireciona para a tela de pré-diagnóstico.
  */
 static void on_btn_salvar_cadastro_clicked(GtkButton *btn, gpointer user_data) {
-    // 1. Recuperamos a struct com os campos de entrada através do ponteiro genérico
+    // 1. Recupera a struct com os campos de entrada atraves do ponteiro generico
     CadastroCampos *campos = (CadastroCampos *)user_data;
 
-    // 2. Extraímos as strings contidas em cada GtkEntry mapeado
+    // 2. Extrai as strings contidas em cada GtkEntry mapeado
     const char *nome = gtk_editable_get_text(GTK_EDITABLE(campos->entry_nome));
     const char *email = gtk_editable_get_text(GTK_EDITABLE(campos->entry_email));
     const char *cpf = gtk_editable_get_text(GTK_EDITABLE(campos->entry_cpf));
@@ -397,7 +397,7 @@ static void on_btn_excluir_pron_clicked(GtkButton *btn, gpointer user_data) {
  * @return Retorna um GtkWidget (GtkBox) contendo toda a interface de login pronta.
  */
 static GtkWidget* criar_tela_login(LoginCampos *campos) {
-    // Criamos uma caixa vertical com 10 pixels de espaçamento entre os componentes
+    // Cria uma caixa vertical com 10 pixels de espacamento entre os componentes
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_widget_set_halign(vbox, GTK_ALIGN_CENTER); 
     gtk_widget_set_valign(vbox, GTK_ALIGN_CENTER); 
@@ -442,7 +442,7 @@ static GtkWidget* criar_tela_login(LoginCampos *campos) {
  * @return Retorna um GtkWidget (GtkBox) com o menu principal ajustado sem agendamentos.
  */
 static GtkWidget* criar_tela_dashboard(void) {
-    // 1. Criamos a caixa vertical principal com 15 pixels de espaçamento
+    // 1. Cria a caixa vertical principal com 15 pixels de espacamento
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
     gtk_widget_set_halign(vbox, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(vbox, GTK_ALIGN_CENTER);
@@ -978,6 +978,10 @@ static void on_app_activate(GtkApplication *app, gpointer user_data) {
     gtk_window_present(GTK_WINDOW(window));
 }
 
+/*
+ * Inicializa a interface grafica do GTK e os estados da aplicacao
+ * Retorna true em caso de sucesso, false caso contrario
+ */
 bool gui_init(AppState *app_state) {
     if (app_state == NULL) return false;
     g_app_state = app_state;
@@ -988,6 +992,9 @@ bool gui_init(AppState *app_state) {
     return true;
 }
 
+/*
+ * Executa o loop principal da aplicacao grafica GTK
+ */
 void gui_run(void) {
     if (g_gtk_app != NULL) {
         g_application_run(G_APPLICATION(g_gtk_app), 0, NULL);

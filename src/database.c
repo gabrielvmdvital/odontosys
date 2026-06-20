@@ -7,16 +7,23 @@
 #include <stdint.h>
 #include <time.h>
 
+/*
+ * Divide uma linha em formato CSV em multiplos campos
+ * Retorna o numero de campos encontrados
+ */
 int split_csv_line(char *line, char **fields, int max_fields) {
     int count = 0;
     char *curr = line;
+    // Percorre a string ate encontrar o final ou atingir o limite de campos
     while (*curr != '\0' && count < max_fields) {
         fields[count++] = curr;
         char *delim = strchr(curr, ';');
         if (delim != NULL) {
+            // Substitui o delimitador por caractere nulo para isolar o campo
             *delim = '\0';
             curr = delim + 1;
         } else {
+            // Remove quebras de linha no ultimo campo caso existam
             char *nl = strchr(curr, '\n');
             if (nl != NULL) *nl = '\0';
             nl = strchr(curr, '\r');
@@ -27,9 +34,14 @@ int split_csv_line(char *line, char **fields, int max_fields) {
     return count;
 }
 
+/*
+ * Inicializa a estrutura de diretorios e arquivos do banco de dados
+ */
 void database_init(void) {
+    // Cria o diretorio base para os arquivos de dados caso nao exista
     CreateDirectoryA("database", NULL);
 
+    // Inicializa o arquivo de pacientes com cabecalho caso esteja ausente
     FILE *fp = fopen(PATIENT_FILE, "r");
     if (!fp) {
         fp = fopen(PATIENT_FILE, "w");
@@ -41,6 +53,7 @@ void database_init(void) {
         fclose(fp);
     }
 
+    // Inicializa o arquivo clinico com cabecalho caso esteja ausente
     FILE *fc = fopen(CLINICAL_FILE, "r");
     if (!fc) {
         fc = fopen(CLINICAL_FILE, "w");
@@ -52,6 +65,7 @@ void database_init(void) {
         fclose(fc);
     }
 
+    // Inicializa o arquivo de dentistas com cabecalho e admin padrao caso ausente
     FILE *fu = fopen(DENTIST_FILE, "r");
     if (!fu) {
         fu = fopen(DENTIST_FILE, "w");
@@ -67,6 +81,10 @@ void database_init(void) {
     log_message(LOG_INFO, "Banco de dados inicializado.");
 }
 
+/*
+ * Adiciona uma nova linha ao final do arquivo especificado
+ * Retorna 1 em caso de sucesso, 0 caso contrario
+ */
 int db_append_line(const char *filepath, const char *line) {
     database_init();
     FILE *file = fopen(filepath, "a");
@@ -79,10 +97,16 @@ int db_append_line(const char *filepath, const char *line) {
     return 1;
 }
 
+/*
+ * Remove linhas de um arquivo baseando-se no valor de uma coluna especifica
+ * Retorna a quantidade de linhas removidas
+ */
 int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_col_idx, const char *filter_val, int max_cols) {
+    // Abre o arquivo fonte para leitura
     FILE *src = fopen(filepath, "r");
     if (src == NULL) return 0;
 
+    // Abre um arquivo temporario para escrita
     FILE *dest = fopen(temp_filepath, "w");
     if (dest == NULL) {
         fclose(src);
@@ -94,6 +118,7 @@ int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_
     char **fields = malloc(max_cols * sizeof(char*));
     int deleted = 0;
 
+    // Itera por todas as linhas do arquivo de origem
     while (fgets(line, sizeof(line), src)) {
         if (line[0] == '\n' || line[0] == '\r') {
             fprintf(dest, "%s", line);
@@ -103,6 +128,7 @@ int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_
         strcpy(line_copy, line);
         int cols = split_csv_line(line_copy, fields, max_cols);
 
+        // Omite a escrita no arquivo destino se o valor bater com o filtro
         if (cols > filter_col_idx && strcmp(fields[filter_col_idx], filter_val) == 0) {
             deleted++; // Pula a escrita
         } else {
@@ -114,16 +140,23 @@ int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_
     fclose(src);
     fclose(dest);
 
+    // Substitui o arquivo original pelo temporario com as alteracoes
     remove(filepath);
     rename(temp_filepath, filepath);
 
     return deleted;
 }
 
+/*
+ * Atualiza uma linha especifica em um arquivo, buscando pelo valor em uma coluna
+ * Retorna 1 se a linha foi atualizada, 0 caso contrario
+ */
 int db_update_line(const char *filepath, const char *temp_filepath, int filter_col_idx, const char *filter_val, const char *new_line, int max_cols) {
+    // Abre o arquivo fonte para leitura
     FILE *src = fopen(filepath, "r");
     if (src == NULL) return 0;
 
+    // Abre um arquivo temporario para escrita
     FILE *dest = fopen(temp_filepath, "w");
     if (dest == NULL) {
         fclose(src);
@@ -135,6 +168,7 @@ int db_update_line(const char *filepath, const char *temp_filepath, int filter_c
     char **fields = malloc(max_cols * sizeof(char*));
     int updated = 0;
 
+    // Itera por todas as linhas do arquivo de origem
     while (fgets(line, sizeof(line), src)) {
         if (line[0] == '\n' || line[0] == '\r') {
             fprintf(dest, "%s", line);
@@ -144,6 +178,7 @@ int db_update_line(const char *filepath, const char *temp_filepath, int filter_c
         strcpy(line_copy, line);
         int cols = split_csv_line(line_copy, fields, max_cols);
 
+        // Substitui o conteudo se a linha coincidir com o valor filtrado
         if (cols > filter_col_idx && strcmp(fields[filter_col_idx], filter_val) == 0) {
             fprintf(dest, "%s", new_line);
             updated = 1;
@@ -156,13 +191,16 @@ int db_update_line(const char *filepath, const char *temp_filepath, int filter_c
     fclose(src);
     fclose(dest);
 
+    // Substitui o arquivo original pelo temporario atualizado
     remove(filepath);
     rename(temp_filepath, filepath);
 
     return updated;
 }
 
-// Função para gerar um ID único de 64 bits
+/*
+ * Gera um ID unico de 64 bits combinando timestamp e contador interno
+ */
 uint64_t generate_unique_id(void) {
     static uint64_t contador = 0; // contador interno para evitar colisões no mesmo segundo
     time_t agora = time(NULL);
