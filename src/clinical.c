@@ -54,17 +54,25 @@ void clinical_formular_diag(ClinicalRecord *record) {
         else
                 strcpy(str_classe, "Classe III");
 
-// 2) Classificação Maxila (maxila_tipo)
-        char str_maxila[20];
+// 2) Classificação Maxila (maxila_tipo, maxila_desvio)
+        char str_maxila[40];
 
-        if (record->maxila_tipo == 0)
+        if (record->maxila_tipo == 0) {
                 strcpy(str_maxila, "bem posicionada");
+        }
 
-        else if (record->maxila_tipo == 1)
-                strcpy(str_maxila, "protruida");
+        else {
+                const char *direcao = (record->maxila_tipo == 1) ? "protruida" : "retruida";
 
-        else if (record->maxila_tipo == -1)
-                strcpy(str_maxila, "retruida");
+                if (record->maxila_desvio == 1)
+                        sprintf(str_maxila, "levemente %s", direcao);
+
+                else if (record->maxila_desvio == 2)
+                        strcpy(str_maxila, direcao);
+                        
+                else
+                        sprintf(str_maxila, "muito %s", direcao);
+        }
 
 // 3) Tamanho da Mandíbula (coa, maxila_tipo, maxila_desvio + cogn + Tabela de McNamara)
         char str_tam_mand[20];

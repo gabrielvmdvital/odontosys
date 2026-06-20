@@ -9,6 +9,7 @@
 typedef struct {
     uint64_t dentist_id;     /**< ID do dentista (chave primária) */
     char name[100];     /**< Nome do dentista */
+    char username[50];  /**< Username de acesso */
     char cpf[15];       /**< CPF do dentista (chave primária) */
     char password[100]; /**< Senha do dentista */
     int role;           /**< Nível de acesso (e.g., 1=Admin, 2=Dentista) */
@@ -25,7 +26,7 @@ int save_dentist(Dentist *dentist);
 /**
  * @brief Verifica se o dentista e senha estão corretos.
  */
-int check_dentist(const char *cpf, const char *password); 
+int check_dentist(const char *cpf_or_user, const char *password); 
 
 /**
  * @brief Atualiza os dados de um dentista.
@@ -37,7 +38,7 @@ int update_dentist(Dentist *dentist);
  */
 int delete_dentist(uint64_t dentist_id);
 
-int validate_login(const char *cpf, const char *password);
+int validate_login(const char *cpf_or_user, const char *password);
 
 /**
  * @brief Busca dentista pelo CPF no arquivo dentists.csv.

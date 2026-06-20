@@ -133,8 +133,10 @@ static LaudoViewCampos g_laudo_view;
  */
 typedef struct {
     GtkWidget *entry_nome;
+    GtkWidget *entry_username;
     GtkWidget *entry_cpf;
     GtkWidget *entry_senha;
+    GtkWidget *btn_salvar;
 } CadastroDentistaCampos;
 static CadastroDentistaCampos g_campos_cad_dentista;
 
@@ -184,8 +186,22 @@ static void on_btn_entrar_clicked(GtkButton *btn, gpointer user_data) {
     log_message(LOG_INFO, "[GUI] Botão Entrar Clicado.");
     log_message(LOG_INFO, "[GUI] Usuário inserido: %s", usuario);
 
-    char clean_user[20];
-    clean_cpf(usuario, clean_user);
+    char clean_user[100];
+    strcpy(clean_user, usuario);
+    
+    // Verifica se a string parece um CPF (apenas números, pontos e traços)
+    int is_cpf = 1;
+    for (int i = 0; usuario[i] != '\0'; i++) {
+        if (!((usuario[i] >= '0' && usuario[i] <= '9') || usuario[i] == '.' || usuario[i] == '-')) {
+            is_cpf = 0;
+            break;
+        }
+    }
+    
+    // Se for um CPF, limpamos a máscara (pontos e traços)
+    if (is_cpf) {
+        clean_cpf(usuario, clean_user);
+    }
 
     int role = validate_login(clean_user, senha);
     if (role != -1) {
@@ -235,8 +251,24 @@ static void limpar_tela_busca(void) {
  */
 static void limpar_campos_cadastro_dentista(void) {
     gtk_editable_set_text(GTK_EDITABLE(g_campos_cad_dentista.entry_nome), "");
+    gtk_editable_set_text(GTK_EDITABLE(g_campos_cad_dentista.entry_username), "");
     gtk_editable_set_text(GTK_EDITABLE(g_campos_cad_dentista.entry_cpf), "");
     gtk_editable_set_text(GTK_EDITABLE(g_campos_cad_dentista.entry_senha), "");
+}
+
+/**
+ * @brief Callback disparado quando os campos do cadastro de dentista mudam
+ */
+static void on_cadastro_dentista_entry_changed(GtkEditable *editable, gpointer user_data) {
+    (void)editable;
+    CadastroDentistaCampos *campos = (CadastroDentistaCampos *)user_data;
+    const char *nome = gtk_editable_get_text(GTK_EDITABLE(campos->entry_nome));
+    const char *username = gtk_editable_get_text(GTK_EDITABLE(campos->entry_username));
+    const char *cpf = gtk_editable_get_text(GTK_EDITABLE(campos->entry_cpf));
+    const char *senha = gtk_editable_get_text(GTK_EDITABLE(campos->entry_senha));
+
+    gboolean pronto = (strlen(nome) > 0 && strlen(username) > 0 && strlen(cpf) > 0 && strlen(senha) > 0);
+    gtk_widget_set_sensitive(campos->btn_salvar, pronto);
 }
 
 /**
@@ -248,15 +280,36 @@ static void on_btn_salvar_dentista_clicked(GtkButton *btn, gpointer user_data) {
     Dentist d;
     
     strncpy(d.name, gtk_editable_get_text(GTK_EDITABLE(campos->entry_nome)), sizeof(d.name)-1);
+    strncpy(d.username, gtk_editable_get_text(GTK_EDITABLE(campos->entry_username)), sizeof(d.username)-1);
     const char *raw_cpf = gtk_editable_get_text(GTK_EDITABLE(campos->entry_cpf));
     clean_cpf(raw_cpf, d.cpf);
     strncpy(d.password, gtk_editable_get_text(GTK_EDITABLE(campos->entry_senha)), sizeof(d.password)-1);
+    
+    // Validação do CPF (11 dígitos)
+    if (strlen(d.cpf) != 11) {
+        GtkAlertDialog *alert = gtk_alert_dialog_new("Dados Inválidos");
+        gtk_alert_dialog_set_detail(alert, "O CPF deve conter exatamente 11 números.");
+        gtk_alert_dialog_show(alert, NULL);
+        g_object_unref(alert);
+        return;
+    }
+
+    // Verificar duplicidade de CPF no banco de dados (já que username ou cpf são únicos para login)
+    Dentist existing = find_dentist_by_cpf(d.cpf);
+    if (existing.dentist_id != (uint64_t)-1) {
+        GtkAlertDialog *alert = gtk_alert_dialog_new("Erro de Cadastro");
+        gtk_alert_dialog_set_detail(alert, "Já existe um dentista cadastrado com este CPF.");
+        gtk_alert_dialog_show(alert, NULL);
+        g_object_unref(alert);
+        return;
+    }
     
     d.role = 2; // Dentista padrão
     d.dentist_id = generate_unique_id();
     
     log_message(LOG_INFO, "[GUI] Processando novo cadastro de dentista...");
     log_message(LOG_INFO, " |- Nome: %s", d.name);
+    log_message(LOG_INFO, " |- Username: %s", d.username);
     log_message(LOG_INFO, " |- CPF: %s", d.cpf);
     
     save_dentist(&d);
@@ -1139,11 +1192,12 @@ static GtkWidget* criar_tela_login(LoginCampos *campos) {
     gtk_box_append(GTK_BOX(vbox), lbl_titulo);
 
     // Componente Campo Usuário
-    GtkWidget *lbl_usuario = gtk_label_new("Usuário (CPF):");
+    GtkWidget *lbl_usuario = gtk_label_new("Usuário ou CPF:");
     gtk_widget_set_halign(lbl_usuario, GTK_ALIGN_START); 
     gtk_box_append(GTK_BOX(vbox), lbl_usuario);
 
     campos->entry_usuario = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_usuario), "Usuário ou CPF");
     gtk_widget_set_size_request(campos->entry_usuario, 250, -1); 
     gtk_box_append(GTK_BOX(vbox), campos->entry_usuario);
 
@@ -1193,14 +1247,25 @@ static GtkWidget* criar_tela_cadastro_dentista(CadastroDentistaCampos *campos) {
     GtkWidget *lbl_nome = gtk_label_new("Nome:");
     gtk_widget_set_halign(lbl_nome, GTK_ALIGN_START);
     campos->entry_nome = gtk_entry_new();
+    g_signal_connect(campos->entry_nome, "changed", G_CALLBACK(on_cadastro_dentista_entry_changed), campos);
     gtk_box_append(GTK_BOX(vbox), lbl_nome);
     gtk_box_append(GTK_BOX(vbox), campos->entry_nome);
+
+    // Username
+    GtkWidget *lbl_username = gtk_label_new("Nome de Usuário (Login):");
+    gtk_widget_set_halign(lbl_username, GTK_ALIGN_START);
+    campos->entry_username = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_username), "Username");
+    g_signal_connect(campos->entry_username, "changed", G_CALLBACK(on_cadastro_dentista_entry_changed), campos);
+    gtk_box_append(GTK_BOX(vbox), lbl_username);
+    gtk_box_append(GTK_BOX(vbox), campos->entry_username);
 
     // CPF
     GtkWidget *lbl_cpf = gtk_label_new("CPF:");
     gtk_widget_set_halign(lbl_cpf, GTK_ALIGN_START);
     campos->entry_cpf = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(campos->entry_cpf), "000.000.000-00");
+    g_signal_connect(campos->entry_cpf, "changed", G_CALLBACK(on_cadastro_dentista_entry_changed), campos);
     gtk_box_append(GTK_BOX(vbox), lbl_cpf);
     gtk_box_append(GTK_BOX(vbox), campos->entry_cpf);
 
@@ -1209,13 +1274,15 @@ static GtkWidget* criar_tela_cadastro_dentista(CadastroDentistaCampos *campos) {
     gtk_widget_set_halign(lbl_senha, GTK_ALIGN_START);
     campos->entry_senha = gtk_entry_new();
     gtk_entry_set_visibility(GTK_ENTRY(campos->entry_senha), FALSE);
+    g_signal_connect(campos->entry_senha, "changed", G_CALLBACK(on_cadastro_dentista_entry_changed), campos);
     gtk_box_append(GTK_BOX(vbox), lbl_senha);
     gtk_box_append(GTK_BOX(vbox), campos->entry_senha);
 
-    GtkWidget *btn_salvar = gtk_button_new_with_label("💾 Salvar");
-    gtk_widget_set_margin_top(btn_salvar, 15);
-    g_signal_connect(btn_salvar, "clicked", G_CALLBACK(on_btn_salvar_dentista_clicked), campos);
-    gtk_box_append(GTK_BOX(vbox), btn_salvar);
+    campos->btn_salvar = gtk_button_new_with_label("💾 Salvar");
+    gtk_widget_set_margin_top(campos->btn_salvar, 15);
+    gtk_widget_set_sensitive(campos->btn_salvar, FALSE); // Começa desabilitado
+    g_signal_connect(campos->btn_salvar, "clicked", G_CALLBACK(on_btn_salvar_dentista_clicked), campos);
+    gtk_box_append(GTK_BOX(vbox), campos->btn_salvar);
 
     return vbox;
 }
