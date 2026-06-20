@@ -193,7 +193,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_pos_incsup, "retruido");
 
 // 6) Inclinação incisivo sup (medida angular: na1_ang)
-        char str_inc_incsup[20];
+        char str_inc_incsup[40];
 
         //1.NA normal 23-25 graus
         if (record->na1_ang >= 23.0 && record->na1_ang <= 25.0)
@@ -204,7 +204,6 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 
         else
                 strcpy(str_inc_incsup, "verticalizado");
-
 
 // 7) Posição incisivo inf (nb1_dist)
         char str_pos_incinf[20];
@@ -219,7 +218,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_pos_incinf, "protruido");
 
 // 8) Inclinação incisivo inf (nb1_ang)
-        char str_inc_incinf[20];
+        char str_inc_incinf[40];
 
         // 1.NB normal = 34-26 graus
         if (record->nb1_ang >= 24.0 && record->nb1_ang <= 26.0)

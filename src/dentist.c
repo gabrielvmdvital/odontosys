@@ -72,16 +72,16 @@ int delete_dentist(uint64_t dentist_id) {
 
 /*
  * Valida o login do dentista verificando CPF e senha
- * Retorna 1 para credenciais validas, 0 caso contrario
+ * Retorna o role (ex: 1) para credenciais validas, -1 caso contrario
  */
 int validate_login(const char *cpf, const char *password) {
     // Tenta abrir banco de dados de dentistas para leitura de credenciais
     FILE *file = fopen(DENTIST_FILE, "r");
-    if (!file) return 0;
+    if (!file) return -1;
 
     char line[1024];
     char *fields[5];
-    int valid = 0;
+    int valid = -1;
 
     // Itera por todas as linhas registradas
     while (fgets(line, sizeof(line), file)) {
@@ -97,7 +97,7 @@ int validate_login(const char *cpf, const char *password) {
 
         // Compara credenciais fornecidas com as armazenadas (CPF e senha)
         if (strcmp(fields[2], cpf) == 0 && strcmp(fields[3], password) == 0) {
-            valid = 1;
+            valid = atoi(fields[4]);
             break;
         }
     }

@@ -4,26 +4,43 @@
 #include "app.h"
 #include "gui.h"
 #include "clinical.h"
+#include "database.h"
+#include "logs.h"
 
+/**
+ * @brief Função principal do sistema.
+ * Ponto de entrada do programa que inicializa todos os subsistemas essenciais.
+ */
 int main(void) {
+    // Alimenta a semente do gerador de números aleatórios com o tempo atual
     srand(time(NULL));
-    printf("[INICIALIZACAO] Iniciando aplicacao modular em C...\n");
     
-    // 1. Inicializa o estado
+    // Registra no log o início da execução
+    log_message(LOG_INFO, "[SISTEMA] Iniciando aplicacao..");
+
+    // Garante que a pasta e os arquivos CSV existam e possuam seus respectivos cabeçalhos
+    database_init();
+
+    // Instancia o estado principal que manterá informações globais, se necessário
     AppState app;
     app_init(&app);
     
-    // 2. Inicializa a interface gráfica
+    // Inicializa o framework GTK e cria as janelas
     if (!gui_init(&app)) {
-        printf("[ERRO] Nao foi possivel iniciar a interface grafica.\n");
+        // Se houver falha (ex: falta de bibliotecas ou display), registra erro e encerra com código 1
+        log_message(LOG_ERROR, "[SISTEMA] Nao foi possivel iniciar a interface grafica.\n");
         return 1;
     }
     
-    printf("[SISTEMA] Janela criada. Executando...\n");
+    // Confirma que a interface foi carregada com sucesso
+    log_message(LOG_INFO, "[SISTEMA] Janela criada. Executando...\n");
     
-    // 3. Loop principal
+    // Trava o fluxo de execução aqui para processar eventos de interface (cliques, digitação, etc)
     gui_run();
     
-    printf("[FINALIZACAO] Programa encerrado com sucesso.\n");
+    // Quando o loop principal do GTK é encerrado (janela fechada), o fluxo continua aqui
+    log_message(LOG_INFO, "[SISTEMA] Programa encerrado com sucesso.\n");
+    
+    // Retorna 0 para o SO indicando execução normal
     return 0;
 }

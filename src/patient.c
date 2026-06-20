@@ -80,7 +80,7 @@ Patient find_patient_by_cpf(const char *cpf) {
     if (file == NULL) return found;
 
     char line[512];
-    char *fields[6];
+    char *fields[7];
     // Itera por todas as linhas do banco de dados
     while (fgets(line, sizeof(line), file)) {
         // Pula o cabecalho de colunas e linhas quebras/vazias
@@ -121,7 +121,7 @@ Patient find_patient_by_id(uint64_t patient_id) {
     if (file == NULL) return found;
 
     char line[512];
-    char *fields[6];
+    char *fields[7];
     while (fgets(line, sizeof(line), file)) {
         if (line[0] == '\n' || line[0] == '\r') continue;
         if (strncmp(line, "patient_id;", 11) == 0 || strncmp(line, "id;", 3) == 0) continue;
@@ -223,7 +223,7 @@ Patient* get_all_patients(int *total_count) {
     }
 
     char line[512];
-    char *fields[6];
+    char *fields[7];
     int current = 0;
 
     while (fgets(line, sizeof(line), file) && current < count) {
