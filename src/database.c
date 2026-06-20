@@ -89,8 +89,8 @@ void database_init(void) {
     if (!fu) {
         fu = fopen(DENTIST_FILE, "w");
         if (fu) {
-            fprintf(fu, "dentist_id;name;cpf;password;role\n");
-            fprintf(fu, "0;admin;00000000000;admin;1\n");
+            fprintf(fu, "dentist_id;name;username;cpf;password;role\n");
+            fprintf(fu, "0;admin;admin;00000000000;admin;1\n");
             fclose(fu);
         }
     } else {
