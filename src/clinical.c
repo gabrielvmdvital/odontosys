@@ -8,8 +8,9 @@
 
 // REGRAS DE CLASSIFICAÇÃO ORTODÔNTICA
 // 1) ANB (Classe esquelética): 1-4 = Classe I | >4 = Classe II | <1 = Classe III
-// 2) CoA + CoGn: Comparação com tabela de McNamara -> Mandíbula reduzida / normal / aumentada
-// 3) Padrão crescimento facial: vertical | equilibrado | horizontal
+// 2) Maxila tipo + Maxila desvio: 0 = normal | 1 = protruida (1mm leve, 2mm medio, 3+ muito) | -1 = retruida (mesma lógica da protuida)
+// 3) CoA + CoGn: Comparação com tabela de McNamara -> Mandíbula reduzida / normal / aumentada
+// 4) Padrão crescimento facial: vertical | equilibrado | horizontal
 // Onde: AFAI (mm) -> aumentado | normal | reduzido; e SNGoGn (graus) -> aumentado | normal | reduzido
 /*      MAPA DE CRUZA-DADOS (Padrão de Crescimento Facial) gerado com auxílio de IA:
         ==============================================================================
@@ -26,11 +27,11 @@
         *   normal           |   normal            |  "equilibrado" (Harmonia Total)
         ==============================================================================
 */
-// 4) 1-NA (Posição incisivo sup): 3-5 = normal | >5 = protruído | <3 = retruído
-// 5) 1.NA (Inclinação incisivo sup): 24-25 = normal | >25 = inclinado | <23 = verticalizado
-// 6) 1-NB (Posição incisivo inf): 3-5 = normal | >5 = protruído | <3 = retruído
-// 7) 1.NB (Inclinação incisivo inf): 24-26 = normal | >26 = inclinado | <24 = verticalizado
-// 8) Perf_tegument (Perfil facial): reto | convexo | concavo | normal
+// 5) 1-NA (Posição incisivo sup): 3-5 = normal | >5 = protruído | <3 = retruído
+// 6) 1.NA (Inclinação incisivo sup): 24-25 = normal | >25 = inclinado | <23 = verticalizado
+// 7) 1-NB (Posição incisivo inf): 3-5 = normal | >5 = protruído | <3 = retruído
+// 8) 1.NB (Inclinação incisivo inf): 24-26 = normal | >26 = inclinado | <24 = verticalizado
+// 9) Perf_tegument (Perfil facial): reto | convexo | concavo | normal
 
 /* Exemplo de Pré-Diagnóstico:
         Paciente Classe I esquelética, com mandíbula reduzida, padrão de crescimento facial vertical,
@@ -43,7 +44,7 @@
  */
 void clinical_formular_diag(ClinicalRecord *record) {
 
-// 1) Classe esquelética (variável utilizada: anb)
+// 1) Classe esquelética (anb)
         char str_classe[15];
         if (1 <= record->anb && record->anb <= 4)   // OBS.: Usar 'record->anb' é o mesmo que '(*record).anb'
                 strcpy(str_classe, "Classe I");
@@ -60,7 +61,8 @@ void clinical_formular_diag(ClinicalRecord *record) {
         if (record->maxila_tipo == 0) {
                 strcpy(str_maxila, "bem posicionada");
         }
-
+        // se condição maxila_tipo == 1 for verdadeira, é protuida (classifica em muito, leve ou apenas protuida)
+        // se for falsa, retruida (mesma lógica: muito, leve ou apenas retruida)
         else {
                 const char *direcao = (record->maxila_tipo == 1) ? "protruida" : "retruida";
 
@@ -69,7 +71,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
                 else if (record->maxila_desvio == 2)
                         strcpy(str_maxila, direcao);
-                        
+
                 else
                         sprintf(str_maxila, "muito %s", direcao);
         }
@@ -188,55 +190,55 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_cresc_fac, "equilibrado");
 
 
-// 5) Posição incisivo sup (variável: na1_dist)
+// 5) Posição incisivo sup (na1_dist)
         char str_pos_incsup[20];
 
         if (record->na1_dist >= 3 && record->na1_dist <= 5)
-                strcpy(str_pos_incsup, "normal");
+                strcpy(str_pos_incsup, "bem posicionados");
 
         else if (record->na1_dist > 5)
-                strcpy(str_pos_incsup, "protruido");
+                strcpy(str_pos_incsup, "protruidos");
 
         else 
-                strcpy(str_pos_incsup, "retruido");
+                strcpy(str_pos_incsup, "retruidos");
 
-// 6) Inclinação incisivo sup (medida angular: na1_ang)
+// 6) Inclinação incisivo sup (na1_ang)
         char str_inc_incsup[40];
 
         //1.NA normal 23-25 graus
         if (record->na1_ang >= 23.0 && record->na1_ang <= 25.0)
-                strcpy(str_inc_incsup, "inclinacao normal");
+                strcpy(str_inc_incsup, "com inclinacao normal");
 
         else if (record->na1_ang > 25.0)
-                strcpy(str_inc_incsup, "inclinado para vestibular");
+                strcpy(str_inc_incsup, "inclinados");
                 
         else
-                strcpy(str_inc_incsup, "verticalizado");
+                strcpy(str_inc_incsup, "verticalizados");
 
 // 7) Posição incisivo inf (nb1_dist)
         char str_pos_incinf[20];
 
         if (record->nb1_dist >= 3.0 && record->nb1_dist <= 5.0)
-                strcpy(str_pos_incinf, "bem posicionado");
+                strcpy(str_pos_incinf, "bem posicionados");
 
         else if (record->nb1_dist < 3.0)
-                strcpy(str_pos_incinf, "retruido");
+                strcpy(str_pos_incinf, "retruidos");
 
         else
-                strcpy(str_pos_incinf, "protruido");
+                strcpy(str_pos_incinf, "protruidos");
 
 // 8) Inclinação incisivo inf (nb1_ang)
         char str_inc_incinf[40];
 
         // 1.NB normal = 34-26 graus
         if (record->nb1_ang >= 24.0 && record->nb1_ang <= 26.0)
-                strcpy(str_inc_incinf, "com boa inclinação");
+                strcpy(str_inc_incinf, "com inclinação normal");
 
         else if (record->nb1_ang < 24.0)
                 strcpy(str_inc_incinf, "verticalizados");
 
         else
-                strcpy(str_inc_incinf, "inclinado para vestibular");
+                strcpy(str_inc_incinf, "inclinados");
 
 // 9) Perfil facial (perf_tegument)
         char str_perf_fac[20];
