@@ -34,10 +34,13 @@ void get_timestamp(char *buffer, size_t size) {
 // Inicializa o sistema de logs
 int init_logger(const char *filename) {
     if (filename != NULL) {
+        // Verifica se o caminho base usa o diretorio padrao "logs"
         if (strstr(filename, "logs/") == filename || strstr(filename, "logs\\") == filename) {
+            // Garante que o diretorio exista antes de iniciar o log
             CreateDirectoryA("logs", NULL);
         }
 
+        // Abre o arquivo de log no modo de adicao para nao sobrescrever registros anteriores
         log_file = fopen(filename, "a");
         if (!log_file) {
             perror("Falha ao abrir arquivo de log");
@@ -58,11 +61,14 @@ void close_logger(void) {
 // Grava uma mensagem de log com argumentos variáveis
 void log_message(LogLevel level, const char *format, ...) {
     char timestamp[20];
+    // Extrai o horario formatado do sistema
     get_timestamp(timestamp, sizeof(timestamp));
 
     char prefix[50];
+    // Estrutura o prefixo padrao da mensagem de log (horario e nivel)
     snprintf(prefix, sizeof(prefix), "[%s] [%s]: ", timestamp, log_level_to_string(level));
 
+    // Exibe a mensagem estruturada na saida padrao do terminal (console)
     printf("%s", prefix);
     va_list args;
     va_start(args, format);
@@ -71,11 +77,13 @@ void log_message(LogLevel level, const char *format, ...) {
     printf("\n");
 
     if (log_file) {
+        // Grava fisicamente a mesma mensagem estruturada no arquivo de log
         fprintf(log_file, "%s", prefix);
         va_start(args, format);
         vfprintf(log_file, format, args);
         va_end(args);
         fprintf(log_file, "\n");
+        // Forca a gravacao imediata no disco para evitar perda por encerramento subido
         fflush(log_file);
     }
 }

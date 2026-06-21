@@ -2,10 +2,13 @@
 #include "database.h"
 #include <stdio.h>
 
+/*
+ * Inicializa o estado principal da aplicacao e do banco de dados
+ */
 void app_init(AppState *state) {
     if (state == NULL) return;
     
-    // Inicialize suas variáveis aqui
+    // Inicializa variaveis de estado
     state->valor = 0;
     database_init();
 }

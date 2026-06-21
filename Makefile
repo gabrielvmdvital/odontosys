@@ -46,7 +46,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS) | $(BIN_DIR)
 	@echo [LINKING] Gerando executavel final $@...
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
-	@echo Compilado com sucesso! Executável gerado em: $(TARGET)
+	@echo Compilado com sucesso! Executavel gerado em: $(TARGET)
 
 # Compilação dos arquivos fonte do app para objetos
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
@@ -73,10 +73,10 @@ $(BIN_DIR) $(OBJ_DIR):
 
 # Limpeza dos arquivos compilados
 clean:
-	@echo [CLEANING] Removendo arquivos temporários de build...
+	@echo [CLEANING] Removendo arquivos temporarios de build...
 	@rm -rf "$(OBJ_DIR)"
 	@rm -rf "$(BIN_DIR)"
-	@echo Limpeza concluída!
+	@echo Limpeza concluida!
 
 # Compilar e executar o projeto automaticamente
 run: all

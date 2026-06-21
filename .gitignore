@@ -18,3 +18,7 @@ logs/
 *.suo
 *.user
 Thumbs.db
+
+*test
+src/main_test.c
+docs/odontosys_mermaid.md
