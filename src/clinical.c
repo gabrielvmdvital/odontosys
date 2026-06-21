@@ -52,7 +52,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_classe, "Classe III");
 
 // 2) Classificação Maxila (maxila_tipo)
-        char str_maxila[20];
+        char str_maxila[50];
 
         if (record->maxila_tipo == 0)
                 strcpy(str_maxila, "bem posicionada");
@@ -64,7 +64,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_maxila, "retruida");
 
 // 3) Tamanho da Mandíbula (coa, maxila_tipo, maxila_desvio + cogn + Tabela de McNamara)
-        char str_tam_mand[20];
+        char str_tam_mand[50];
         // Receber Coa e corrigir proporcinalmente ao desvio da mandibula
         int coa_corrigido;
 
@@ -131,10 +131,10 @@ void clinical_formular_diag(ClinicalRecord *record) {
         }
 
 // 4) Padrão de Crescimento Facial (afai, coa_corrigido + Tabela de McNamamra)
-        char str_cresc_fac[20];
+        char str_cresc_fac[50];
 
         // Será dividido em duas partes:
-        char str_afai[20], str_sngogn[20];
+        char str_afai[50], str_sngogn[50];
 
         // AFAI, pela tabela de McNamara (assim como foi usada para o tamanho da mandíbula)
         for (int i = 0; i<29; i++) {
@@ -178,7 +178,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
 
 // 5) Posição incisivo sup (variável: na1_dist)
-        char str_pos_incsup[20];
+        char str_pos_incsup[50];
 
         if (record->na1_dist >= 3 && record->na1_dist <= 5)
                 strcpy(str_pos_incsup, "normal");
@@ -190,7 +190,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_pos_incsup, "retruido");
 
 // 6) Inclinação incisivo sup (medida angular: na1_ang)
-        char str_inc_incsup[20];
+        char str_inc_incsup[30];
 
         //1.NA normal 23-25 graus
         if (record->na1_ang >= 23.0 && record->na1_ang <= 25.0)
@@ -204,7 +204,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
 
 // 7) Posição incisivo inf (nb1_dist)
-        char str_pos_incinf[20];
+        char str_pos_incinf[50];
 
         if (record->nb1_dist >= 3.0 && record->nb1_dist <= 5.0)
                 strcpy(str_pos_incinf, "bem posicionado");
@@ -216,7 +216,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_pos_incinf, "protruido");
 
 // 8) Inclinação incisivo inf (nb1_ang)
-        char str_inc_incinf[20];
+        char str_inc_incinf[50];
 
         // 1.NB normal = 34-26 graus
         if (record->nb1_ang >= 24.0 && record->nb1_ang <= 26.0)
@@ -229,7 +229,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_inc_incinf, "inclinado para vestibular");
 
 // 9) Perfil facial (perf_tegument)
-        char str_perf_fac[20];
+        char str_perf_fac[50];
         strcpy(str_perf_fac, record->perf_tegument);
 
 
