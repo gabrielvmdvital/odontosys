@@ -16,11 +16,10 @@ int save_dentist(Dentist *dentist) {
     // Gera identificador unico global para o novo dentista
     dentist->dentist_id = generate_unique_id();
     // Formata a linha de dados segundo o padrao CSV para armazenamento
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
+    // PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(line, sizeof(line), "%" PRIu64 ";%s;%s;%s;%s;%d\n", dentist->dentist_id, dentist->name, dentist->username, dentist->cpf, dentist->password, dentist->role);
     if (db_append_line(DENTIST_FILE, line)) {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_INFO, "Dentist %s saved with ID %" PRIu64 ".", dentist->name, dentist->dentist_id);
+        log_message(LOG_INFO, "[DATABASE] Dentist %s saved with ID %" PRIu64 ".", dentist->name, dentist->dentist_id);
         return 1;
     }
     return 0;
@@ -44,12 +43,11 @@ int update_dentist(Dentist *dentist) {
     
     char new_line[1024];
     // Prepara a string CSV formatada
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(new_line, sizeof(new_line), "%" PRIu64 ";%s;%s;%s;%s;%d\n", existing.dentist_id, dentist->name, dentist->username, dentist->cpf, dentist->password, dentist->role);
     // Realiza a atualizacao da linha buscando a coluna de CPF (agora na coluna index 3)
     int updated = db_update_line(DENTIST_FILE, DENTIST_FILE_TEMP, 3, dentist->cpf, new_line, 6);
     if (updated) {
-        log_message(LOG_INFO, "Dentist %s updated.", dentist->name);
+        log_message(LOG_INFO, "[DATABASE] Dentist %s updated.", dentist->name);
     }
     return updated;
 }
@@ -60,12 +58,10 @@ int update_dentist(Dentist *dentist) {
  */
 int delete_dentist(uint64_t dentist_id) {
     char filter_val[32];
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(filter_val, sizeof(filter_val), "%" PRIu64, dentist_id);
     int deleted = db_delete_lines(DENTIST_FILE, DENTIST_FILE_TEMP, 0, filter_val, 6);
     if (deleted > 0) {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_INFO, "Dentist ID %" PRIu64 " deleted.", dentist_id);
+        log_message(LOG_INFO, "[DATABASE] Dentist ID %" PRIu64 " deleted.", dentist_id);
     }
     return deleted > 0 ? 1 : 0;
 }

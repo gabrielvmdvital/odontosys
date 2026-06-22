@@ -91,6 +91,7 @@ typedef struct {
     GtkWidget *lbl_resultado;       // Guarda o rótulo do resultado na tela
     GtkWidget *frame_resultado;     // Guarda o container da caixinha gráfica
     GtkWidget *btn_diagnostico;     // Botao de gerar diagnostico
+    GtkWidget *btn_concluir;        // Botao de concluir (salvar diagnostico)
 } PreDiagCampos;
 
 /**
@@ -446,7 +447,7 @@ static void on_btn_buscar_clicked(GtkButton *btn, gpointer user_data) {
     BuscaCampos *busca = (BuscaCampos *)user_data;
     const char *texto = gtk_editable_get_text(GTK_EDITABLE(busca->entry_busca));
 
-    printf("[GUI] Buscando por: %s\n", texto);
+    log_message(LOG_INFO, "[GUI] Buscando por: %s", texto);
 
     // 3. Atualiza a interface
     gchar *busca_lower = g_utf8_strdown(texto, -1);
@@ -588,6 +589,9 @@ static void limpar_campos_pre_diagnostico(PreDiagCampos *campos) {
     
     // Oculta o card de resultado novamente para o próximo caso
     gtk_widget_set_visible(campos->frame_resultado, FALSE);
+    if (campos->btn_concluir != NULL) {
+        gtk_widget_set_visible(campos->btn_concluir, FALSE);
+    }
 }
 
 /**
@@ -651,15 +655,10 @@ static void on_btn_concluir_fluxo_clicked(GtkButton *btn, gpointer user_data) {
         g_current_clinical_record.diag_date[sizeof(g_current_clinical_record.diag_date) - 1] = '\0';
         
         save_clinical_record(&g_current_clinical_record);
-        log_message(LOG_INFO, "[GUI] Laudo avulso salvo no BD.");
+        log_message(LOG_INFO, "[GUI] Pré-diagnóstico salvo no BD.");
         
         // Limpa a tela
         limpar_campos_pre_diagnostico(campos);
-        
-        // Restaura a semântica e funcionalidade do botão original do formulário
-        gtk_button_set_label(btn, "🧠 Gerar Pré-Diagnóstico");
-        g_signal_handlers_disconnect_by_func(btn, G_CALLBACK(on_btn_concluir_fluxo_clicked), campos);
-        g_signal_connect(btn, "clicked", G_CALLBACK(on_btn_gerar_diagnostico_clicked), campos);
         
         g_is_standalone_laudo = FALSE;
         
@@ -667,7 +666,7 @@ static void on_btn_concluir_fluxo_clicked(GtkButton *btn, gpointer user_data) {
         carregar_tela_prontuario_por_id(g_selected_patient_id);
     } else {
         // Fluxo original de cadastro completo
-        // Salvar laudo no BD (paciente já foi salvo na etapa anterior)
+        // Salvar pré-diagnóstico no BD (paciente já foi salvo na etapa anterior)
         g_current_clinical_record.patient_id = g_current_patient.patient_id;
         g_current_clinical_record.dentist_id = g_logged_dentist_id;
         
@@ -684,11 +683,6 @@ static void on_btn_concluir_fluxo_clicked(GtkButton *btn, gpointer user_data) {
         // 1. Limpa os dados de ambas as etapas visuais para evitar vazamento de memória visual
         limpar_campos_pre_diagnostico(campos);
         limpar_campos_cadastro_basico();
-        
-        // 2. Restaura a semântica e funcionalidade do botão original do formulário
-        gtk_button_set_label(btn, "🧠 Gerar Pré-Diagnóstico");
-        g_signal_handlers_disconnect_by_func(btn, G_CALLBACK(on_btn_concluir_fluxo_clicked), campos);
-        g_signal_connect(btn, "clicked", G_CALLBACK(on_btn_gerar_diagnostico_clicked), campos);
         
         // 3. Joga o dentista de volta na primeira tela de dados cadastrais
         gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "cadastro_page");
@@ -766,7 +760,7 @@ static void on_btn_gerar_diagnostico_clicked(GtkButton *btn, gpointer user_data)
 
     // 2. Impressão estruturada de diagnóstico nos logs do terminal
     log_message(LOG_INFO, "[GUI] Coletando métricas estruturadas de ClinicalRecord para processamento:");
-    log_message(LOG_INFO, " |- Laudo: %s", g_current_clinical_record.pre_diagnosis);
+    log_message(LOG_INFO, "[INFERENCIA] Pré-diagnóstico: %s", g_current_clinical_record.pre_diagnosis);
     log_message(LOG_INFO, "[GUI] Registro clínico consolidado com sucesso!");
 
     // --- GRÁFICO DO CARD DE RESULTADO RENDERIZADO COM ESTILO PANGO ---
@@ -782,13 +776,9 @@ static void on_btn_gerar_diagnostico_clicked(GtkButton *btn, gpointer user_data)
 
     // Torna visível a estrutura gráfica do card na tela
     gtk_widget_set_visible(campos->frame_resultado, TRUE);
-
-    // Configura o botão para avançar em loop de cadastro
-    gtk_button_set_label(btn, "✨ Concluir e Novo Cadastro");
-
-    // Desconecta e chaveia o fluxo para a função de reset e loop infinito
-    g_signal_handlers_disconnect_by_func(btn, G_CALLBACK(on_btn_gerar_diagnostico_clicked), campos);
-    g_signal_connect(btn, "clicked", G_CALLBACK(on_btn_concluir_fluxo_clicked), campos);
+    
+    // Mostra o botão de concluir, mantendo o botão atual visivel
+    gtk_widget_set_visible(campos->btn_concluir, TRUE);
 }
 /**
  * @brief Callback do botão Voltar da tela de laudo dedicado
@@ -1164,13 +1154,37 @@ static void on_btn_editar_pron_clicked(GtkButton *btn, gpointer user_data) {
  * @brief callback do botão excluir  (ainda somente visual)
  */
 
+static void on_confirmar_exclusao_response(GObject *source_object, GAsyncResult *res, gpointer user_data) {
+    (void)user_data;
+    GtkAlertDialog *alert = GTK_ALERT_DIALOG(source_object);
+    GError *error = NULL;
+    int response = gtk_alert_dialog_choose_finish(alert, res, &error);
+
+    if (error != NULL) {
+        g_error_free(error);
+        return;
+    }
+
+    if (response == 1) { // 1 = "Excluir"
+        log_message(LOG_INFO, "[GUI] Excluindo prontuário e paciente (ID: %" PRIu64 ").", g_selected_patient_id);
+        delete_patient(g_selected_patient_id);
+        atualizar_lista_prontuarios("");
+        gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "prontuarios_page");
+    }
+}
+
 static void on_btn_excluir_pron_clicked(GtkButton *btn, gpointer user_data) {
     (void)user_data;
-    (void)btn;
-    log_message(LOG_INFO, "[GUI] Excluindo prontuário e paciente (ID: %" PRIu64 ").", g_selected_patient_id);
-    delete_patient(g_selected_patient_id);
-    atualizar_lista_prontuarios("");
-    gtk_stack_set_visible_child_name(GTK_STACK(g_stack), "prontuarios_page");
+    GtkWidget *parent_window = GTK_WIDGET(gtk_widget_get_root(GTK_WIDGET(btn)));
+    
+    GtkAlertDialog *alert = gtk_alert_dialog_new("Tem certeza que deseja excluir o paciente e todo o seu histórico clínico?");
+    const char *buttons[] = {"Cancelar", "Excluir", NULL};
+    gtk_alert_dialog_set_buttons(alert, buttons);
+    gtk_alert_dialog_set_cancel_button(alert, 0);
+    gtk_alert_dialog_set_default_button(alert, 1);
+    
+    gtk_alert_dialog_choose(alert, GTK_WINDOW(parent_window), NULL, on_confirmar_exclusao_response, NULL);
+    g_object_unref(alert);
 }
 // ============================================================================
 // CONSTRUTORES DE INTERFACES (TELAS)
@@ -1672,6 +1686,13 @@ static GtkWidget* criar_tela_pre_diagnostico(PreDiagCampos *campos) {
     gtk_widget_set_size_request(campos->btn_diagnostico, -1, 42);
     g_signal_connect(campos->btn_diagnostico, "clicked", G_CALLBACK(on_btn_gerar_diagnostico_clicked), campos);
     gtk_box_append(GTK_BOX(vbox), campos->btn_diagnostico);
+
+    campos->btn_concluir = gtk_button_new_with_label("✨ Concluir e Salvar Prontuário");
+    gtk_widget_set_visible(campos->btn_concluir, FALSE); // Começa invisível
+    gtk_widget_set_margin_top(campos->btn_concluir, 10);
+    gtk_widget_set_size_request(campos->btn_concluir, -1, 42);
+    g_signal_connect(campos->btn_concluir, "clicked", G_CALLBACK(on_btn_concluir_fluxo_clicked), campos);
+    gtk_box_append(GTK_BOX(vbox), campos->btn_concluir);
 
     // Liga os sinais de mudanca de texto
     g_signal_connect(campos->entry_height, "changed", G_CALLBACK(on_pre_diag_fields_changed), campos);

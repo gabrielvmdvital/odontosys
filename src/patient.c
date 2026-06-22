@@ -43,7 +43,7 @@ int save_patient(Patient *patient) {
     // Verifica a existencia previa de paciente com o mesmo CPF para evitar duplicatas
     Patient existing = find_patient_by_cpf(patient->cpf);
     if (existing.patient_id != (uint64_t)-1) {
-        log_message(LOG_WARNING, "Falha ao salvar: ja existe um paciente com o CPF %s.", patient->cpf);
+        log_message(LOG_WARNING, "[DATABASE] Falha ao salvar: ja existe um paciente com o CPF %s.", patient->cpf);
         return 0;
     }
 
@@ -52,14 +52,12 @@ int save_patient(Patient *patient) {
 
     char line[512];
     // Formata a linha de dados segundo o padrao CSV para armazenamento
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(line, sizeof(line), "%" PRIu64 ";%" PRIu64 ";%s;%s;%s;%s;%s\n", 
              patient->patient_id, patient->dentist_id, patient->name, patient->email, 
              patient->cpf, patient->birth_date, patient->phone);
 
     if (db_append_line(PATIENT_FILE, line)) {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_INFO, "Paciente cadastrado no CSV com sucesso: %s (ID: %" PRIu64 ")", patient->name, patient->patient_id);
+        log_message(LOG_INFO, "[DATABASE] Paciente cadastrado no CSV com sucesso: %s (ID: %" PRIu64 ")", patient->name, patient->patient_id);
         update_cached_patient_count(1);
         return 1;
     }
@@ -154,16 +152,14 @@ int update_patient(uint64_t patient_id, Patient *patient) {
     // Verifica se ja existe outro paciente usando o mesmo CPF (evita clones)
     Patient existing = find_patient_by_cpf(patient->cpf);
     if (existing.patient_id != (uint64_t)-1 && (uint64_t)existing.patient_id != patient_id) {
-        log_message(LOG_WARNING, "Falha ao atualizar: ja existe outro paciente com o CPF %s.", patient->cpf);
+        log_message(LOG_WARNING, "[DATABASE] Falha ao atualizar: ja existe outro paciente com o CPF %s.", patient->cpf);
         return 0;
     }
 
     char filter_val[32];
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(filter_val, sizeof(filter_val), "%" PRIu64, patient_id);
 
     char new_line[512];
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(new_line, sizeof(new_line), "%" PRIu64 ";%" PRIu64 ";%s;%s;%s;%s;%s\n", 
              patient->patient_id, patient->dentist_id, patient->name, patient->email, 
              patient->cpf, patient->birth_date, patient->phone);
@@ -171,11 +167,9 @@ int update_patient(uint64_t patient_id, Patient *patient) {
     int updated = db_update_line(PATIENT_FILE, PATIENT_FILE_TEMP, 0, filter_val, new_line, 7);
 
     if (updated) {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_INFO, "Paciente ID %" PRIu64 " (%s) atualizado com sucesso no CSV.", patient_id, patient->name);
+        log_message(LOG_INFO, "[DATABASE] Paciente ID %" PRIu64 " (%s) atualizado com sucesso no CSV.", patient_id, patient->name);
     } else {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_WARNING, "Nenhum paciente correspondente ao ID %" PRIu64 " encontrado para atualizacao no CSV.", patient_id);
+        log_message(LOG_WARNING, "[DATABASE] Nenhum paciente correspondente ao ID %" PRIu64 " encontrado para atualizacao no CSV.", patient_id);
     }
 
     return updated;
@@ -187,14 +181,14 @@ int update_patient(uint64_t patient_id, Patient *patient) {
  */
 int delete_patient(uint64_t patient_id) {
     char filter_val[32];
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
+    //PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(filter_val, sizeof(filter_val), "%" PRIu64, patient_id);
 
     int deleted = db_delete_lines(PATIENT_FILE, PATIENT_FILE_TEMP, 0, filter_val, 7);
 
     if (deleted > 0) {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_INFO, "Paciente ID %" PRIu64 " removido do CSV com sucesso.", patient_id);
+        // PRIu64 e uma macro para formatar inteiros uint64_t
+        log_message(LOG_INFO, "[DATABASE] Paciente ID %" PRIu64 " removido do CSV com sucesso.", patient_id);
         update_cached_patient_count(-1);
         delete_clinical_records_by_patient(patient_id); // Deleta em cascata
         return 1;

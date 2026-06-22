@@ -43,10 +43,11 @@
  * Formula um pre-diagnostico clinico baseado em parametros ortodonticos
  */
 void clinical_formular_diag(ClinicalRecord *record) {
+    log_message(LOG_INFO, "[INFERENCIA] Iniciando formulacao de diagnostico.");
 
 // 1) Classe esquelética (anb)
         char str_classe[15];
-        if (1 <= record->anb && record->anb <= 4)   // OBS.: Usar 'record->anb' é o mesmo que '(*record).anb'
+        if (1 <= record->anb && record->anb <= 4) 
                 strcpy(str_classe, "Classe I");
 
         else if (record->anb > 4)
@@ -247,6 +248,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
 // No fim, juntar tudo em uma string para copiar em pre_diagnosis.
 sprintf(record->pre_diagnosis, "Paciente %s, com maxila %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_maxila, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
+    log_message(LOG_INFO, "[INFERENCIA] Pre-diagnostico gerado: %s", record->pre_diagnosis);
 }
 
 /*
@@ -261,7 +263,7 @@ int save_clinical_record(ClinicalRecord *record) {
 
     char line[1024];
     // Formata a linha CSV de acordo com os atributos estruturados
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
+    // PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(line, sizeof(line), "%" PRIu64 ";%" PRIu64 ";%" PRIu64 ";%s;%d;%.2f;%.2f;%d;%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%s;%s\n", 
         record->clinical_id, 
         record->patient_id, 
@@ -284,8 +286,7 @@ int save_clinical_record(ClinicalRecord *record) {
     );
 
     if (db_append_line(CLINICAL_FILE, line)) {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_INFO, "Prontuario ID %" PRIu64 " adicionado no CSV para Paciente ID %" PRIu64 ".", 
+        log_message(LOG_INFO, "[DATABASE] Prontuario ID %" PRIu64 " adicionado no CSV para Paciente ID %" PRIu64 ".", 
                     record->clinical_id, record->patient_id);
         return 1;
     }
@@ -376,14 +377,12 @@ ClinicalRecord* load_clinical_records(uint64_t patient_id, int *count) {
  */
 int delete_clinical_records_by_patient(uint64_t patient_id) {
     char filter_val[32];
-    // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(filter_val, sizeof(filter_val), "%" PRIu64, patient_id);
     
     int cl_deleted_count = db_delete_lines(CLINICAL_FILE, CLINICAL_FILE_TEMP, 1, filter_val, 18);
     
     if (cl_deleted_count > 0) {
-        // OBS: PRIu64 e uma macro para formatar inteiros uint64_t
-        log_message(LOG_INFO, "%d prontuarios vinculados ao paciente ID %" PRIu64 " foram removidos de %s.", cl_deleted_count, patient_id, CLINICAL_FILE);
+        log_message(LOG_INFO, "[DATABASE] %d prontuarios vinculados ao paciente ID %" PRIu64 " foram removidos de %s.", cl_deleted_count, patient_id, CLINICAL_FILE);
     }
     
     return cl_deleted_count;
