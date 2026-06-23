@@ -15,13 +15,13 @@ O sistema é dividido em **4 camadas principais**:
 ## Descrição das Camadas e Componentes
 
 ### 1. Camada de Apresentação (GUI)
-* **Componente:** `gui.c` / `gui.h`
-* **Função:** Gerencia a janela gráfica Win32 do Windows. Ela desenha os botões, caixas de texto e tabelas. Ela captura os cliques do mouse do dentista/paciente e lê ou altera as informações contidas no estado global (`AppState`).
+* **Componente:** Pasta `src/gui/*.c` e cabeçalho `include/gui.h`
+* **Função:** Modulariza o controle da interface de usuário gráfica utilizando GTK4. Cada tela possui seu próprio arquivo `.c` dedicado (ex: `gui_login.c`, `gui_dashboard.c`, `gui_pre_diagnostico.c`). O módulo constrói os layouts, renderiza os botões/textos, captura as interações do dentista e se comunica com o restante do sistema conectando os dados extraídos das entradas visuais às structs de domínio e variáveis de estado.
 
 ### 2. Camada de Lógica & Estado (Core)
-* **`main.c`:** Inicializa todas as peças do sistema em ordem (Métricas, Logs, Estado e Janela Gráfica) e gerencia o loop de mensagens da aplicação.
-* **`app.c` / `app.h` (`AppState`):** Centraliza o estado atual do programa em uma única estrutura na memória (quem é o usuário logado, qual a aba atual, etc.).
-* **`clinical.c` / `clinical.h`:** Contém as lógicas de negócio e as fórmulas para o pré-diagnóstico odontológico e executa a classificação baseada nos parâmetros clínicos inseridos.
+* **`main.c` (Raiz do Projeto):** Arquivo central que inicializa todas as peças do sistema em ordem (Logs, e Framework GTK) e lança o loop principal da aplicação.
+* **`app.c` / `app.h`:** Gerencia as funções de inicialização, configurações base e o ciclo de vida do GTK (`GtkApplication`).
+* **`dentist.c` / `patient.c` / `clinical.c`:** Contêm as regras de negócio de cada entidade. O arquivo `clinical.c`, em específico, abriga a inteligência cefalométrica e a árvore de decisão responsável por processar as medidas informadas, cruzar dados biológicos e formular o laudo de pré-diagnóstico final.
 
 ### 3. Camada de Dados (Database)
 * **Componente:** `database.c` / `database.h`

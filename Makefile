@@ -25,7 +25,7 @@ TESTS_DIR = test
 
 # Arquivos fonte e objetos correspondentes do app
 SRCS = $(filter-out $(SRC_DIR)/main_test.c, $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/gui/*.c))
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS)) $(OBJ_DIR)/main.o
 TARGET = $(BIN_DIR)/programa.exe
 
 # Arquivos fonte e objetos correspondentes de testes
@@ -51,6 +51,11 @@ $(TARGET): $(OBJS) | $(BIN_DIR)
 # Compilação dos arquivos fonte do app para objetos
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	@mkdir -p "$(dir $@)"
+	@echo [COMPILING] Compilando $<...
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compilação do main na raiz
+$(OBJ_DIR)/main.o: main.c | $(OBJ_DIR)
 	@echo [COMPILING] Compilando $<...
 	$(CC) $(CFLAGS) -c $< -o $@
 
