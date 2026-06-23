@@ -48,7 +48,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 // 1) Classe esquelética (anb)
         char str_classe[15];
         if (1 <= record->anb && record->anb <= 4) 
-                strcpy(str_classe, "Classe I");
+                strcpy(str_classe, "Classe I"); // strcpy copia a string da origem para o destino
 
         else if (record->anb > 4)
                 strcpy(str_classe, "Classe II");
@@ -68,13 +68,13 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 const char *direcao = (record->maxila_tipo == 1) ? "protruida" : "retruida";
 
                 if (record->maxila_desvio == 1)
-                        sprintf(str_maxila, "levemente %s", direcao);
+                        sprintf(str_maxila, "levemente %s", direcao); // sprintf formata e armazena os dados em uma string
 
                 else if (record->maxila_desvio == 2)
                         strcpy(str_maxila, direcao);
 
                 else
-                        sprintf(str_maxila, "muito %s", direcao);
+                        sprintf(str_maxila, "muito %s", direcao); // sprintf formata e armazena os dados em uma string
         }
 
 // 3) Tamanho da Mandíbula (coa, maxila_tipo, maxila_desvio + cogn + Tabela de McNamara)
@@ -179,7 +179,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
         // Análise Final do Padrão de crescimento (salvando em str_cresc_fac)
         // Se uma das variáveis é aumentada
-        if (strcmp(str_afai, "aumentado") == 0 || strcmp(str_sngogn, "aumentado") == 0) // Se um OU (||) o outro acontecer
+        if (strcmp(str_afai, "aumentado") == 0 || strcmp(str_sngogn, "aumentado") == 0) // strcmp compara strings (0 = iguais) | Se um OU (||) o outro acontecer
                 strcpy(str_cresc_fac, "vertical");
         
         // Se uma das variáveis diminuída
@@ -264,12 +264,11 @@ int save_clinical_record(ClinicalRecord *record) {
     char line[1024];
     // Formata a linha CSV de acordo com os atributos estruturados
     // PRIu64 e uma macro para formatar inteiros uint64_t
-    snprintf(line, sizeof(line), "%" PRIu64 ";%" PRIu64 ";%" PRIu64 ";%s;%d;%.2f;%.2f;%d;%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%s;%s\n", 
+    snprintf(line, sizeof(line), "%" PRIu64 ";%" PRIu64 ";%" PRIu64 ";%s;%.2f;%.2f;%d;%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%s;%s\n", // snprintf formata com limite seguro de tamanho
         record->clinical_id, 
         record->patient_id, 
         record->dentist_id,
         record->diag_date, 
-        record->age,
         record->anb,
         record->coa,
         record->maxila_tipo,
@@ -300,35 +299,35 @@ int save_clinical_record(ClinicalRecord *record) {
 ClinicalRecord* load_clinical_records(uint64_t patient_id, int *count) {
     *count = 0;
     // Tenta abrir o arquivo clinico para pre-contagem
-    FILE *file = fopen(CLINICAL_FILE, "r");
+    FILE *file = fopen(CLINICAL_FILE, "r"); // fopen abre o arquivo em modo de leitura ("r")
     if (file == NULL) return NULL;
 
     char line[1024];
-    char *fields[18];
+    char *fields[17];
     // Contabiliza os prontuarios vinculados ao ID do paciente
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file)) { // fgets le uma linha do arquivo e protege contra overflow
         if (line[0] == '\n' || line[0] == '\r') continue;
-        if (strncmp(line, "clinical_id;", 12) == 0 || strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "clinical_id;", 12) == 0 || strncmp(line, "id;", 3) == 0) continue; // strncmp compara até N caracteres protegendo limites
         
         char line_copy[1024];
         strcpy(line_copy, line);
-        int cols = split_csv_line(line_copy, fields, 18);
-        if (cols >= 18 && strtoull(fields[1], NULL, 10) == patient_id) {
+        int cols = split_csv_line(line_copy, fields, 17);
+        if (cols >= 17 && strtoull(fields[1], NULL, 10) == patient_id) { // strtoull converte a string para unsigned long long (uint64_t)
             (*count)++;
         }
     }
-    fclose(file);
+    fclose(file); // fclose fecha o manipulador do arquivo
 
     if (*count == 0) return NULL;
 
     // Aloca arranjo para armazenar os registros em memoria
-    ClinicalRecord *records = malloc((*count) * sizeof(ClinicalRecord));
+    ClinicalRecord *records = malloc((*count) * sizeof(ClinicalRecord)); // malloc aloca a memória na heap para N registros
     if (records == NULL) return NULL;
 
     // Abre novamente o arquivo para extrair e popular os dados
     file = fopen(CLINICAL_FILE, "r");
     if (file == NULL) {
-        free(records);
+        free(records); // free libera a memória dinâmica evitando vazamentos
         return NULL;
     }
 
@@ -340,28 +339,27 @@ ClinicalRecord* load_clinical_records(uint64_t patient_id, int *count) {
         char line_copy[1024];
         strcpy(line_copy, line);
 
-        int cols = split_csv_line(line_copy, fields, 18);
-        if (cols < 18) continue;
+        int cols = split_csv_line(line_copy, fields, 17);
+        if (cols < 17) continue;
 
         if (strtoull(fields[1], NULL, 10) == patient_id) {
             records[current].clinical_id = strtoull(fields[0], NULL, 10);
             records[current].patient_id = strtoull(fields[1], NULL, 10);
             records[current].dentist_id = strtoull(fields[2], NULL, 10);
             strcpy(records[current].diag_date, fields[3]);
-            records[current].age = atoi(fields[4]);
-            records[current].anb = atof(fields[5]);
-            records[current].coa = atof(fields[6]);
-            records[current].maxila_tipo = atoi(fields[7]);
-            records[current].maxila_desvio = atoi(fields[8]);
-            records[current].cogn = atof(fields[9]);
-            records[current].afai = atof(fields[10]);
-            records[current].sngogn = atof(fields[11]);
-            records[current].na1_dist = atof(fields[12]);
-            records[current].na1_ang = atof(fields[13]);
-            records[current].nb1_dist = atof(fields[14]);
-            records[current].nb1_ang = atof(fields[15]);
-            strcpy(records[current].perf_tegument, fields[16]);
-            strcpy(records[current].pre_diagnosis, fields[17]);
+            records[current].anb = atof(fields[4]); // atof converte de string para um double/float numérico
+            records[current].coa = atof(fields[5]);
+            records[current].maxila_tipo = atoi(fields[6]); // atoi converte string para int numérico padrão
+            records[current].maxila_desvio = atoi(fields[7]);
+            records[current].cogn = atof(fields[8]);
+            records[current].afai = atof(fields[9]);
+            records[current].sngogn = atof(fields[10]);
+            records[current].na1_dist = atof(fields[11]);
+            records[current].na1_ang = atof(fields[12]);
+            records[current].nb1_dist = atof(fields[13]);
+            records[current].nb1_ang = atof(fields[14]);
+            strcpy(records[current].perf_tegument, fields[15]);
+            strcpy(records[current].pre_diagnosis, fields[16]);
             current++;
         }
     }
@@ -379,7 +377,7 @@ int delete_clinical_records_by_patient(uint64_t patient_id) {
     char filter_val[32];
     snprintf(filter_val, sizeof(filter_val), "%" PRIu64, patient_id);
     
-    int cl_deleted_count = db_delete_lines(CLINICAL_FILE, CLINICAL_FILE_TEMP, 1, filter_val, 18);
+    int cl_deleted_count = db_delete_lines(CLINICAL_FILE, CLINICAL_FILE_TEMP, 1, filter_val, 17);
     
     if (cl_deleted_count > 0) {
         log_message(LOG_INFO, "[DATABASE] %d prontuarios vinculados ao paciente ID %" PRIu64 " foram removidos de %s.", cl_deleted_count, patient_id, CLINICAL_FILE);

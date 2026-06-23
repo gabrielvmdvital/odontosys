@@ -58,7 +58,7 @@ void update_cached_patient_count(int delta);
 /**
  * @brief Carrega todos os pacientes do arquivo pacientes.csv.
  * Retorna um array alocado dinamicamente e salva a quantidade em total_count.
- * deve ser liberado com free() após utilizar.
+ * deve ser liberado com free() após utilizar. // free libera a memória dinâmica alocada
  */
 Patient* get_all_patients(int *total_count);
 
