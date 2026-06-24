@@ -262,7 +262,7 @@ int save_clinical_record(ClinicalRecord *record) {
     // Gera identificador unico para o prontuario
     record->clinical_id = generate_unique_id();
 
-    char line[1024];
+    char line[2048];
     // Formata a linha CSV de acordo com os atributos estruturados
     // PRIu64 e uma macro para formatar inteiros uint64_t
     snprintf(line, sizeof(line), "%" PRIu64 ";%" PRIu64 ";%" PRIu64 ";%s;%.2f;%.2f;%d;%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%s;%s\n", // snprintf formata com limite seguro de tamanho

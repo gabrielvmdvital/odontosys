@@ -412,7 +412,7 @@ void carregar_tela_prontuario_por_id(uint64_t patient_id) {
             ClinicalRecord *cr = g_malloc(sizeof(ClinicalRecord));
             memcpy(cr, &records[i], sizeof(ClinicalRecord));
 
-            char row_label_str[1024];
+            char row_label_str[2048];
             snprintf(row_label_str, sizeof(row_label_str), "📄 Pré-Diagnóstico (%s) - %s", cr->diag_date, cr->pre_diagnosis);
             
             GtkWidget *row_label = gtk_label_new(row_label_str);
