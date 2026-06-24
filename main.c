@@ -15,11 +15,11 @@ int main(void) {
     // Alimenta a semente do gerador de números aleatórios com o tempo atual
     srand(time(NULL)); // time obtém o timestamp atual do sistema
     
-    // Registra no log o início da execução
-    log_message(LOG_INFO, "[SISTEMA] Iniciando aplicacao..");
-
     // Garante que a pasta e os arquivos CSV existam e possuam seus respectivos cabeçalhos
     database_init();
+
+    // Registra no log o início da execução
+    log_message(LOG_INFO, "[SISTEMA] Iniciando aplicacao..");
 
     // Instancia o estado principal que manterá informações globais, se necessário
     AppState app;
