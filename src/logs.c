@@ -5,6 +5,7 @@
 #include <time.h>
 #include <string.h>
 #include <windows.h>
+#include <locale.h>
 
 // Ponteiro global para o arquivo de log
 static FILE *log_file = NULL;

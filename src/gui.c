@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <locale.h>
 
 // ============================================================================
 // VARIÁVEIS GLOBAIS DE ESTADO E REFERÊNCIAS VISUAIS

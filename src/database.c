@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <stdint.h>
 #include <time.h>
+#include <locale.h>
 
 /**
  * @brief Divide uma linha em formato CSV em multiplos campos

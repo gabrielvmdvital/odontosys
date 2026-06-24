@@ -151,7 +151,7 @@ void on_laudo_row_activated(GtkListBox *box, GtkListBoxRow *row, gpointer user_d
     if (!cr) return;
 
     // Popula a struct g_laudo_view
-    char buf[512];
+    char buf[1024];
     snprintf(buf, sizeof(buf), "Data do Laudo: %s", cr->diag_date); // snprintf formata com limite seguro de tamanho
     gtk_label_set_text(GTK_LABEL(g_laudo_view.lbl_data), buf);
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <locale.h>
 #include "clinical.h"
 #include "database.h"
 #include "logs.h"
@@ -78,7 +79,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
         }
 
 // 3) Tamanho da Mandíbula (coa, maxila_tipo, maxila_desvio + cogn + Tabela de McNamara)
-        char str_tam_mand[20];
+        char str_tam_mand[50];
         // Receber Coa e corrigir proporcinalmente ao desvio da mandibula
         int coa_corrigido;
 
@@ -145,10 +146,10 @@ void clinical_formular_diag(ClinicalRecord *record) {
         }
 
 // 4) Padrão de Crescimento Facial (afai, coa_corrigido + Tabela de McNamamra)
-        char str_cresc_fac[20];
+        char str_cresc_fac[50];
 
         // Será dividido em duas partes:
-        char str_afai[20], str_sngogn[20];
+        char str_afai[50], str_sngogn[50];
 
         // AFAI, pela tabela de McNamara (assim como foi usada para o tamanho da mandíbula)
         for (int i = 0; i<29; i++) {
@@ -192,7 +193,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
 
 
 // 5) Posição incisivo sup (na1_dist)
-        char str_pos_incsup[20];
+        char str_pos_incsup[50];
 
         if (record->na1_dist >= 3 && record->na1_dist <= 5)
                 strcpy(str_pos_incsup, "bem posicionados");
@@ -217,7 +218,7 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_inc_incsup, "verticalizados");
 
 // 7) Posição incisivo inf (nb1_dist)
-        char str_pos_incinf[20];
+        char str_pos_incinf[50];
 
         if (record->nb1_dist >= 3.0 && record->nb1_dist <= 5.0)
                 strcpy(str_pos_incinf, "bem posicionados");
@@ -242,12 +243,12 @@ void clinical_formular_diag(ClinicalRecord *record) {
                 strcpy(str_inc_incinf, "inclinados");
 
 // 9) Perfil facial (perf_tegument)
-        char str_perf_fac[20];
+        char str_perf_fac[50];
         strcpy(str_perf_fac, record->perf_tegument);
 
 
 // No fim, juntar tudo em uma string para copiar em pre_diagnosis.
-sprintf(record->pre_diagnosis, "Paciente %s, com maxila %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_maxila, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
+    snprintf(record->pre_diagnosis, sizeof(record->pre_diagnosis), "Paciente %s, com maxila %s, com mandibula %s, padrao de crescimento facial %s, incisivos superiores %s e %s, incisivos inferiores %s e %s, e perfil facial %s.", str_classe, str_maxila, str_tam_mand, str_cresc_fac, str_pos_incsup, str_inc_incsup, str_pos_incinf, str_inc_incinf, str_perf_fac);
     log_message(LOG_INFO, "[INFERENCIA] Pre-diagnostico gerado: %s", record->pre_diagnosis);
 }
 

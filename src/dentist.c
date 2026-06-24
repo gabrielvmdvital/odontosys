@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <locale.h>
 
 /*
  * Salva um novo dentista no banco de dados

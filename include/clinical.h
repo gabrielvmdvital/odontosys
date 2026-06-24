@@ -25,7 +25,7 @@ typedef struct {
     float nb1_dist;                     /**< Posição do incisivo inferior (distância) */
     float nb1_ang;                      /**< Inclinação do incisivo inferior (ângulo) */
     char perf_tegument[50];             /**< Formato do perfil (texto) */
-    char pre_diagnosis[500];            /**< Diagnóstico obtido através da árvore de decisão */
+    char pre_diagnosis[600];            /**< Diagnóstico obtido através da árvore de decisão */
 } ClinicalRecord;
 
 void clinical_formular_diag(ClinicalRecord *record);

@@ -1,6 +1,7 @@
 #include "app.h"
 #include "database.h"
 #include <stdio.h>
+#include <locale.h>
 
 /*
  * Inicializa o estado principal da aplicacao e do banco de dados

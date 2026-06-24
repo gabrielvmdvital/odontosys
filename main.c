@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <locale.h>
 #include "app.h"
 #include "gui.h"
 #include "clinical.h"
@@ -12,6 +13,10 @@
  * Ponto de entrada do programa que inicializa todos os subsistemas essenciais.
  */
 int main(void) {
+    // Configura o sistema para aceitar acentuação (UTF-8 / pt-BR)
+    setlocale(LC_ALL, "");
+    setlocale(LC_NUMERIC, "C"); // Mantém o separador decimal como ponto para não quebrar o banco de dados CSV
+    
     // Alimenta a semente do gerador de números aleatórios com o tempo atual
     srand(time(NULL)); // time obtém o timestamp atual do sistema
     

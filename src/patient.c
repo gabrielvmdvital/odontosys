@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <locale.h>
 
 /*
  * Obtem a contagem em cache de pacientes cadastrados
