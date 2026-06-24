@@ -11,11 +11,11 @@
  * Obtem a contagem em cache de pacientes cadastrados
  */
 int get_cached_patient_count(void) {
-    FILE *f = fopen(PATIENT_COUNT_FILE, "r");
+    FILE *f = fopen(PATIENT_COUNT_FILE, "r"); // fopen abre um arquivo
     if (!f) return 0;
     int count = 0;
     fscanf(f, "%d", &count);
-    fclose(f);
+    fclose(f); // fclose fecha o manipulador do arquivo
     return count;
 }
 
@@ -52,7 +52,7 @@ int save_patient(Patient *patient) {
 
     char line[512];
     // Formata a linha de dados segundo o padrao CSV para armazenamento
-    snprintf(line, sizeof(line), "%" PRIu64 ";%" PRIu64 ";%s;%s;%s;%s;%s\n", 
+    snprintf(line, sizeof(line), "%" PRIu64 ";%" PRIu64 ";%s;%s;%s;%s;%s\n",  // snprintf formata com limite seguro de tamanho
              patient->patient_id, patient->dentist_id, patient->name, patient->email, 
              patient->cpf, patient->birth_date, patient->phone);
 
@@ -70,7 +70,7 @@ int save_patient(Patient *patient) {
 Patient find_patient_by_cpf(const char *cpf) {
     // Inicializa a estrutura de retorno com id maximo invalido
     Patient found;
-    memset(&found, 0, sizeof(Patient));
+    memset(&found, 0, sizeof(Patient)); // memset preenche um bloco de memória com um valor
     found.patient_id = -1;
 
     // Tenta abrir o arquivo do banco de dados para leitura
@@ -80,20 +80,20 @@ Patient find_patient_by_cpf(const char *cpf) {
     char line[512];
     char *fields[7];
     // Itera por todas as linhas do banco de dados
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file)) { // fgets lê uma linha do arquivo e previne overflow
         // Pula o cabecalho de colunas e linhas quebras/vazias
         if (line[0] == '\n' || line[0] == '\r') continue;
-        if (strncmp(line, "patient_id;", 11) == 0 || strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "patient_id;", 11) == 0 || strncmp(line, "id;", 3) == 0) continue; // strncmp compara até N caracteres protegendo limites
 
         char line_copy[512];
-        strcpy(line_copy, line);
+        strcpy(line_copy, line); // strcpy copia a string da origem para o destino
         // Separa a linha em vetores atraves dos delimitadores
         int cols = split_csv_line(line_copy, fields, 7);
         if (cols < 7) continue;
 
         // Se encontrar o CPF desejado, preenche a struct e interrompe o laco
-        if (strcmp(fields[4], cpf) == 0) {
-            found.patient_id = strtoull(fields[0], NULL, 10);
+        if (strcmp(fields[4], cpf) == 0) { // strcmp compara strings (0 = iguais)
+            found.patient_id = strtoull(fields[0], NULL, 10); // strtoull converte string para unsigned long long
             found.dentist_id = strtoull(fields[1], NULL, 10);
             strcpy(found.name, fields[2]);
             strcpy(found.email, fields[3]);
@@ -210,7 +210,7 @@ Patient* get_all_patients(int *total_count) {
     if (file == NULL) return NULL;
 
     // Aloca memoria baseada na quantidade recuperada do cache
-    Patient *patients = malloc(count * sizeof(Patient));
+    Patient *patients = malloc(count * sizeof(Patient)); // malloc aloca memória dinâmica na heap
     if (patients == NULL) {
         fclose(file);
         return NULL;

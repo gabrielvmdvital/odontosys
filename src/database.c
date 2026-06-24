@@ -24,7 +24,7 @@ int split_csv_line(char *line, char **fields, int max_fields) {
         fields[count++] = curr;
         
         // Procura a próxima ocorrência do delimitador ';' a partir do ponteiro atual
-        char *delim = strchr(curr, ';');
+        char *delim = strchr(curr, ';'); // strchr encontra a primeira ocorrência do caractere na string
         
         if (delim != NULL) {
             // Se encontrar o delimitador, ele é substituído por '\0'
@@ -61,12 +61,12 @@ void database_init(void) {
     CreateDirectoryA("database", NULL);
 
     // Inicializa o arquivo de pacientes com cabecalho caso esteja ausente
-    FILE *fp = fopen(PATIENT_FILE, "r");
+    FILE *fp = fopen(PATIENT_FILE, "r"); // fopen abre um arquivo
     if (!fp) {
         fp = fopen(PATIENT_FILE, "w");
         if (fp) {
             fprintf(fp, "patient_id;dentist_id;nome;email;cpf;data_nascimento;telefone\n");
-            fclose(fp);
+            fclose(fp); // fclose fecha o manipulador do arquivo
         }
     } else {
         fclose(fp);
@@ -136,11 +136,11 @@ int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_
     char line_copy[1024];
     
     // Aloca memória dinamicamente para o array de ponteiros que receberá as colunas separadas
-    char **fields = malloc(max_cols * sizeof(char*));
+    char **fields = malloc(max_cols * sizeof(char*)); // malloc aloca memória dinâmica na heap
     int deleted = 0;
 
     // Itera linha por linha de todo o arquivo de origem original
-    while (fgets(line, sizeof(line), src)) {
+    while (fgets(line, sizeof(line), src)) { // fgets lê uma linha do arquivo e previne overflow
         // Se a linha estiver vazia ou for apenas uma quebra, copia ela diretamente e pula pra próxima
         if (line[0] == '\n' || line[0] == '\r') {
             fprintf(dest, "%s", line);
@@ -148,13 +148,13 @@ int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_
         }
 
         // Cria uma cópia da string original para ser fatiada/destruída pelo split_csv sem corromper a variável principal
-        strcpy(line_copy, line);
+        strcpy(line_copy, line); // strcpy copia a string da origem para o destino
         
         // Pica a string em colunas usando a função helper
         int cols = split_csv_line(line_copy, fields, max_cols);
 
         // Se a linha tem a coluna do índice necessário E o valor dessa coluna for IDÊNTICO ao valor filtrado
-        if (cols > filter_col_idx && strcmp(fields[filter_col_idx], filter_val) == 0) {
+        if (cols > filter_col_idx && strcmp(fields[filter_col_idx], filter_val) == 0) { // strcmp compara strings (0 = iguais)
             // Omitimos a escrita no arquivo destino, ou seja, na prática "apagamos" a linha e registramos na variável
             deleted++; 
         } else {
@@ -164,15 +164,15 @@ int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_
     }
 
     // Limpa a memória e fecha os manipuladores de arquivo para permitir manipulações no SO
-    free(fields);
+    free(fields); // free libera a memória dinâmica alocada
     fclose(src);
     fclose(dest);
 
     // Estratégia de Atomicidade: Deleta o arquivo antigo inteiro
-    remove(filepath);
+    remove(filepath); // remove deleta um arquivo do SO
     
     // Renomeia o temporário (que está com o dado alterado/removido) para assumir o nome do antigo
-    rename(temp_filepath, filepath);
+    rename(temp_filepath, filepath); // rename renomeia um arquivo no SO
 
     // Retorna quantas linhas foram de fato ignoradas (deletadas) na transição
     return deleted;
@@ -234,7 +234,7 @@ int db_update_line(const char *filepath, const char *temp_filepath, int filter_c
  */
 uint64_t generate_unique_id(void) {
     static uint64_t contador = 0; // contador interno para evitar colisões no mesmo segundo
-    time_t agora = time(NULL);
+    time_t agora = time(NULL); // time obtém o timestamp atual do sistema
 
     if (agora == ((time_t)-1)) {
         log_message(LOG_ERROR, "[DATABASE] Erro ao obter o tempo do sistema.");

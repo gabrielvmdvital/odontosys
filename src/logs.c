@@ -22,12 +22,12 @@ const char* log_level_to_string(LogLevel level) {
 
 // Obtém o carimbo de data/hora atual como string
 void get_timestamp(char *buffer, size_t size) {
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
+    time_t now = time(NULL); // time obtém o timestamp atual do sistema
+    struct tm *t = localtime(&now); // localtime converte timestamp para estrutura de tempo local
     if (t != NULL) {
         strftime(buffer, size, "%Y-%m-%d %H:%M:%S", t);
     } else {
-        strncpy(buffer, "HORA DESCONHECIDA", size);
+        strncpy(buffer, "HORA DESCONHECIDA", size); // strncpy copia N caracteres de uma string, prevenindo overflow
     }
 }
 
@@ -41,7 +41,7 @@ int init_logger(const char *filename) {
         }
 
         // Abre o arquivo de log no modo de adicao para nao sobrescrever registros anteriores
-        log_file = fopen(filename, "a");
+        log_file = fopen(filename, "a"); // fopen abre um arquivo
         if (!log_file) {
             perror("Falha ao abrir arquivo de log");
             return 0;
@@ -53,7 +53,7 @@ int init_logger(const char *filename) {
 // Encerra o sistema de logs
 void close_logger(void) {
     if (log_file) {
-        fclose(log_file);
+        fclose(log_file); // fclose fecha o manipulador do arquivo
         log_file = NULL;
     }
 }
@@ -66,7 +66,7 @@ void log_message(LogLevel level, const char *format, ...) {
 
     char prefix[50];
     // Estrutura o prefixo padrao da mensagem de log (horario e nivel)
-    snprintf(prefix, sizeof(prefix), "[%s] [%s]: ", timestamp, log_level_to_string(level));
+    snprintf(prefix, sizeof(prefix), "[%s] [%s]: ", timestamp, log_level_to_string(level)); // snprintf formata com limite seguro de tamanho
 
     // Exibe a mensagem estruturada na saida padrao do terminal (console)
     printf("%s", prefix);

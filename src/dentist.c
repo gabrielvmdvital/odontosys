@@ -17,7 +17,7 @@ int save_dentist(Dentist *dentist) {
     dentist->dentist_id = generate_unique_id();
     // Formata a linha de dados segundo o padrao CSV para armazenamento
     // PRIu64 e uma macro para formatar inteiros uint64_t
-    snprintf(line, sizeof(line), "%" PRIu64 ";%s;%s;%s;%s;%d\n", dentist->dentist_id, dentist->name, dentist->username, dentist->cpf, dentist->password, dentist->role);
+    snprintf(line, sizeof(line), "%" PRIu64 ";%s;%s;%s;%s;%d\n", dentist->dentist_id, dentist->name, dentist->username, dentist->cpf, dentist->password, dentist->role); // snprintf formata com limite seguro de tamanho
     if (db_append_line(DENTIST_FILE, line)) {
         log_message(LOG_INFO, "[DATABASE] Dentist %s saved with ID %" PRIu64 ".", dentist->name, dentist->dentist_id);
         return 1;
@@ -72,7 +72,7 @@ int delete_dentist(uint64_t dentist_id) {
  */
 int validate_login(const char *cpf_or_user, const char *password) {
     // Tenta abrir banco de dados de dentistas para leitura de credenciais
-    FILE *file = fopen(DENTIST_FILE, "r");
+    FILE *file = fopen(DENTIST_FILE, "r"); // fopen abre um arquivo
     if (!file) return -1;
 
     char line[1024];
@@ -80,24 +80,24 @@ int validate_login(const char *cpf_or_user, const char *password) {
     int valid = -1;
 
     // Itera por todas as linhas registradas
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file)) { // fgets lê uma linha do arquivo e previne overflow
         // Pula o cabecalho de colunas e linhas quebras/vazias
         if (line[0] == '\n' || line[0] == '\r') continue;
-        if (strncmp(line, "dentist_id;", 11) == 0 || strncmp(line, "id;", 3) == 0) continue;
+        if (strncmp(line, "dentist_id;", 11) == 0 || strncmp(line, "id;", 3) == 0) continue; // strncmp compara até N caracteres protegendo limites
 
         char line_copy[1024];
-        strcpy(line_copy, line);
+        strcpy(line_copy, line); // strcpy copia a string da origem para o destino
         // Separa a linha em vetores atraves dos delimitadores
         int cols = split_csv_line(line_copy, fields, 6);
         if (cols < 6) continue;
 
         // Compara credenciais fornecidas com as armazenadas (Username na col 2 ou CPF na col 3) e senha (col 4)
-        if ((strcmp(fields[2], cpf_or_user) == 0 || strcmp(fields[3], cpf_or_user) == 0) && strcmp(fields[4], password) == 0) {
-            valid = atoi(fields[5]);
+        if ((strcmp(fields[2], cpf_or_user) == 0 || strcmp(fields[3], cpf_or_user) == 0) && strcmp(fields[4], password) == 0) { // strcmp compara strings (0 = iguais)
+            valid = atoi(fields[5]); // atoi converte string para inteiro numérico padrão
             break;
         }
     }
-    fclose(file);
+    fclose(file); // fclose fecha o manipulador do arquivo
     return valid;
 }
 
@@ -107,7 +107,7 @@ int validate_login(const char *cpf_or_user, const char *password) {
 Dentist find_dentist_by_cpf(const char *cpf) {
     // Inicializa a estrutura de retorno indicando falha previa
     Dentist found;
-    memset(&found, 0, sizeof(Dentist));
+    memset(&found, 0, sizeof(Dentist)); // memset preenche um bloco de memória com um valor
     found.dentist_id = -1;
 
     // Abre arquivo para busca iterativa
@@ -127,7 +127,7 @@ Dentist find_dentist_by_cpf(const char *cpf) {
 
         // Preenche dados ao encontrar o registro com CPF correspondente (coluna 3) ou Username (coluna 2)
         if (strcmp(fields[2], cpf) == 0 || strcmp(fields[3], cpf) == 0) {
-            found.dentist_id = strtoull(fields[0], NULL, 10);
+            found.dentist_id = strtoull(fields[0], NULL, 10); // strtoull converte string para unsigned long long
             strcpy(found.name, fields[1]);
             strcpy(found.username, fields[2]);
             strcpy(found.cpf, fields[3]);

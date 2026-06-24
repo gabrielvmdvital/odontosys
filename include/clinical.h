@@ -12,7 +12,6 @@ typedef struct {
     uint64_t patient_id;                /**< ID do paciente relacionado (chave estrangeira) */
     uint64_t dentist_id;                /**< ID do dentista responsável (chave estrangeira) */
     char diag_date[11];                 /**< Data do pré-diagnóstico (DD/MM/AAAA) */
-    int age;                            /**< Idade do paciente */
 // Parâmetros necessários para diagnóstico
     float anb;                          /**< Relação maxila/mandíbula (ângulo) */
     float coa;                          /**< Comprimento da maxila (distância) */
@@ -45,7 +44,7 @@ int save_clinical_record(ClinicalRecord *record);
 /**
  * @brief Carrega os registros clínicos de um paciente do arquivo prontuarios.csv.
  * Retorna um array alocado dinamicamente e salva a quantidade em total_count.
- * deve ser liberado com free() após utilizar.
+ * deve ser liberado com free() após utilizar. // free libera a memória dinâmica alocada
  */
 ClinicalRecord* load_clinical_records(uint64_t patient_id, int *total_count);
 

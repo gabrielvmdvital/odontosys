@@ -38,6 +38,10 @@ int update_dentist(Dentist *dentist);
  */
 int delete_dentist(uint64_t dentist_id);
 
+/**
+ * @brief Valida as credenciais de login de um dentista.
+ * Retorna o ID do dentista se as credenciais forem validas, ou -1 caso contrario.
+ */
 int validate_login(const char *cpf_or_user, const char *password);
 
 /**
