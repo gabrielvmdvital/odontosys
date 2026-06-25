@@ -1,2 +1,374 @@
-# odontosys
-Repositório destinado ao desenvolvimento colaborativo do projeto final da Disciplina Programação Imperativa - UPE
+# 🦷 OdontoSys
+
+> Sistema de apoio à triagem odontológica e geração de pré-diagnósticos ortodônticos desenvolvido em **C** utilizando **GTK4**.
+
+---
+
+# 📑 Sumário
+
+* 📌 Arquitetura do Sistema
+* 🛠 Configuração do Ambiente
+* 🚀 Compilação e Execução
+* 🔄 Fluxo de Utilização
+* 📂 Estrutura do Projeto
+* 👨‍💻 Equipe de Desenvolvimento
+
+---
+
+# 🏗 Arquitetura do Sistema
+
+O projeto segue uma arquitetura em **duas camadas**, separando completamente a interface gráfica da lógica de negócio.
+
+## 🎨 Front-End
+
+**Arquivo Principal**
+
+```text
+src/gui.c
+```
+
+Responsável por toda a interface gráfica do sistema utilizando a biblioteca **GTK4**.
+
+### Funcionalidades
+
+* ✅ Construção das telas da aplicação
+* ✅ Navegação utilizando `GtkStack`
+* ✅ Organização visual através de `GtkGrid`
+* ✅ Captura das entradas do usuário
+* ✅ Envio das informações para o Back-End através de estruturas (`gpointer`)
+
+### Telas Desenvolvidas
+
+* 🔐 Login
+* 📊 Dashboard
+* 📋 Prontuários
+* 👥 Cadastro de Pacientes
+* 🧠 Pré-Diagnóstico
+
+---
+
+## ⚙️ Back-End
+
+Arquivos responsáveis pela lógica da aplicação:
+
+```text
+src/clinical.c
+src/database.c
+src/logs.c
+src/dentist.c
+src/patient.c
+```
+
+### Responsabilidades
+
+* ✔️ Validação dos dados recebidos
+* ✔️ Processamento das informações clínicas
+* ✔️ Execução da árvore de decisão ortodôntica
+* ✔️ Geração do pré-diagnóstico
+* ✔️ Registro de eventos em arquivos de log
+* ✔️ Persistência das fichas em disco
+
+---
+
+# 🛠 Configuração do Ambiente
+
+O ambiente oficial utilizado para desenvolvimento no Windows é:
+
+* 🖥 **MSYS2**
+* ⚙️ **UCRT64**
+* 🧩 **GTK4**
+* 🔨 **GCC**
+
+---
+
+## 1️⃣ Instalação do MSYS2
+
+Faça o download do instalador oficial:
+
+🔗 https://www.msys2.org/
+
+Após instalar, abra o terminal:
+
+```text
+MSYS2 UCRT64
+```
+
+---
+
+## 2️⃣ Atualização do Sistema
+
+```bash
+pacman -Syu --noconfirm
+```
+
+---
+
+## 3️⃣ Instalação do GCC
+
+```bash
+pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain --noconfirm
+```
+
+---
+
+## 4️⃣ Instalação do GTK4
+
+```bash
+pacman -S mingw-w64-ucrt-x86_64-gtk4 --noconfirm
+```
+
+---
+
+## 5️⃣ Instalação do pkg-config
+
+```bash
+pacman -S mingw-w64-ucrt-x86_64-pkg-config --noconfirm
+```
+
+---
+
+# 🚀 Compilação do Projeto
+
+## Acesse o diretório
+
+```bash
+cd "/c/Users/kuanv/OneDrive/Desktop/Prototipo 1 interface/odontosys"
+```
+
+---
+
+## Compile o sistema
+
+```bash
+gcc \
+src/gui.c \
+src/main.c \
+src/app.c \
+src/logs.c \
+src/database.c \
+src/clinical.c \
+src/dentist.c \
+src/patient.c \
+-o odontosys_app.exe \
+-Iinclude \
+$(pkg-config --cflags --libs gtk4)
+```
+
+---
+
+## Execute o programa
+
+```bash
+./odontosys_app.exe
+```
+
+---
+
+# 🔄 Fluxo de Utilização
+
+O sistema foi desenvolvido para oferecer um fluxo contínuo durante os atendimentos.
+
+---
+
+## 🔐 1. Login
+
+O profissional informa:
+
+* Usuário
+* Senha
+
+A senha é mascarada automaticamente para maior segurança.
+
+➡ Clique em **Entrar**.
+
+---
+
+## 📊 2. Dashboard
+
+Após a autenticação é exibido o painel principal.
+
+Opções disponíveis:
+
+* 📁 Consultar Prontuários
+* 👥 Cadastrar Novo Paciente
+
+Selecione:
+
+**👥 Cadastrar Paciente**
+
+---
+
+## 👤 3. Cadastro do Paciente
+
+Preencha as informações básicas:
+
+* Nome
+* CPF
+* Telefone
+* Data de Nascimento
+* E-mail (opcional)
+
+Ao clicar em:
+
+**💾 Salvar Ficha**
+
+o sistema:
+
+* valida os dados;
+* registra o evento em log;
+* encaminha automaticamente para a próxima etapa.
+
+---
+
+## 🧠 4. Pré-Diagnóstico
+
+Nesta etapa são preenchidos os parâmetros clínicos utilizados pela árvore de decisão ortodôntica.
+
+Entre eles:
+
+* Ângulo ANB
+* Comprimento COA
+* Comportamento da Maxila
+* Relação Mandibular
+* Demais parâmetros clínicos
+
+Após o preenchimento:
+
+Clique em
+
+**🧠 Gerar Pré-Diagnóstico**
+
+---
+
+## 📄 5. Resultado Clínico
+
+O sistema executa toda a lógica clínica e apresenta o resultado em um componente:
+
+```text
+GtkFrame
+```
+
+O laudo é exibido em uma moldura estilizada contendo o diagnóstico calculado automaticamente.
+
+---
+
+## ♻️ 6. Novo Atendimento
+
+Após finalizar o diagnóstico, o botão passa a ser:
+
+```text
+✨ Concluir e Novo Cadastro
+```
+
+Ao clicar:
+
+* 🧹 Todos os campos são limpos
+* 🗑 A memória temporária é reinicializada
+* 👤 Um novo paciente pode ser cadastrado imediatamente
+
+Esse fluxo reduz significativamente o tempo entre atendimentos.
+
+---
+
+## ⬅️ Retorno ao Painel
+
+Em qualquer momento é possível interromper o cadastro clicando em:
+
+```text
+⬅ Voltar
+```
+
+O usuário retorna com segurança ao Dashboard principal.
+
+---
+
+# 📂 Estrutura do Projeto
+
+```text
+odontosys/
+│
+├── include/
+│
+├── src/
+│   ├── app.c
+│   ├── clinical.c
+│   ├── database.c
+│   ├── dentist.c
+│   ├── gui.c
+│   ├── logs.c
+│   ├── main.c
+│   └── patient.c
+│
+├── README.md
+│
+└── odontosys_app.exe
+```
+
+---
+
+# 🧰 Tecnologias Utilizadas
+
+| Tecnologia | Finalidade                  |
+| ---------- | --------------------------- |
+| C          | Linguagem principal         |
+| GTK4       | Interface gráfica           |
+| GCC        | Compilador                  |
+| MSYS2      | Ambiente de desenvolvimento |
+| UCRT64     | Toolchain para Windows      |
+
+---
+
+# 👨‍💻 Equipe de Desenvolvimento
+
+<table>
+<tr>
+<td align="center">
+
+### 👨‍💻  Gabriel Victor Marques de Oliveira Vital
+
+Desenvolvimento
+
+</td>
+
+<td align="center">
+
+### 👨‍💻 Kauan Victor de Moura Dias
+
+Desenvolvimento
+
+</td>
+
+<td align="center">
+
+### 👨‍💻 Milena Rafaela Duarte Farias de Lima
+
+Desenvolvimento
+
+</td>
+
+<td align="center">
+
+### 👨‍💻 Sofia Ruas Machado Marques 
+
+Desenvolvimento
+
+</td>
+
+</tr>
+
+<td align="center">
+
+### 👨‍💻 Vicente Luiz Barros de Souza
+
+Desenvolvimento
+
+</td>
+
+</tr>
+</table>
+
+---
+
+# 📌 Observações
+
+Este projeto foi desenvolvido como uma ferramenta de apoio ao atendimento odontológico, integrando uma interface gráfica moderna com uma lógica de decisão clínica capaz de auxiliar profissionais durante o processo de triagem e elaboração de pré-diagnósticos ortodônticos.
