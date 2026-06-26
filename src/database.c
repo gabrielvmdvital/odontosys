@@ -67,7 +67,10 @@ void database_init(void) {
         fp = fopen(PATIENT_FILE, "w");
         if (fp) {
             fprintf(fp, "patient_id;dentist_id;nome;email;cpf;data_nascimento;telefone\n");
-            fclose(fp); // fclose fecha o manipulador do arquivo
+            log_message(LOG_INFO, "[DATABASE] Arquivo %s criado e inicializado.", PATIENT_FILE);
+            fclose(fp); // fclose fecha o arquivo
+        } else {
+            log_message(LOG_ERROR, "[DATABASE] Falha critica: Nao foi possivel criar o arquivo %s.", PATIENT_FILE);
         }
     } else {
         fclose(fp);
@@ -79,7 +82,10 @@ void database_init(void) {
         fc = fopen(CLINICAL_FILE, "w");
         if (fc) {
             fprintf(fc, "clinical_id;patient_id;dentist_id;diag_date;idade;anb;coa;maxila_tipo;maxila_desvio;cogn;afai;sngogn;na1_dist;na1_ang;nb1_dist;nb1_ang;perf_tegument;pre_diagnostico\n");
+            log_message(LOG_INFO, "[DATABASE] Arquivo %s criado e inicializado.", CLINICAL_FILE);
             fclose(fc);
+        } else {
+            log_message(LOG_ERROR, "[DATABASE] Falha critica: Nao foi possivel criar o arquivo %s.", CLINICAL_FILE);
         }
     } else {
         fclose(fc);
@@ -92,7 +98,10 @@ void database_init(void) {
         if (fu) {
             fprintf(fu, "dentist_id;name;username;cpf;password;role\n");
             fprintf(fu, "0;admin;admin;00000000000;admin;1\n");
+            log_message(LOG_INFO, "[DATABASE] Arquivo %s criado e inicializado com admin padrao.", DENTIST_FILE);
             fclose(fu);
+        } else {
+            log_message(LOG_ERROR, "[DATABASE] Falha critica: Nao foi possivel criar o arquivo %s.", DENTIST_FILE);
         }
     } else {
         fclose(fu);
@@ -124,11 +133,15 @@ int db_append_line(const char *filepath, const char *line) {
 int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_col_idx, const char *filter_val, int max_cols) {
     // Abre o arquivo fonte para leitura
     FILE *src = fopen(filepath, "r");
-    if (src == NULL) return 0; // Aborta e retorna 0 se não conseguiu ler
+    if (src == NULL) {
+        log_message(LOG_ERROR, "[DATABASE] Falha ao ler arquivo %s para remocao.", filepath);
+        return 0; // Aborta e retorna 0 se não conseguiu ler
+    }
 
     // Abre um arquivo temporario para escrita (será o novo arquivo limpo)
     FILE *dest = fopen(temp_filepath, "w");
     if (dest == NULL) {
+        log_message(LOG_ERROR, "[DATABASE] Falha ao criar arquivo temporario %s.", temp_filepath);
         fclose(src);
         return 0; // Aborta se não conseguir criar o arquivo temporário
     }
@@ -186,11 +199,15 @@ int db_delete_lines(const char *filepath, const char *temp_filepath, int filter_
 int db_update_line(const char *filepath, const char *temp_filepath, int filter_col_idx, const char *filter_val, const char *new_line, int max_cols) {
     // Abre o arquivo fonte para leitura
     FILE *src = fopen(filepath, "r");
-    if (src == NULL) return 0;
+    if (src == NULL) {
+        log_message(LOG_ERROR, "[DATABASE] Falha ao ler arquivo %s para atualizacao.", filepath);
+        return 0;
+    }
 
     // Abre um arquivo temporario para escrita
     FILE *dest = fopen(temp_filepath, "w");
     if (dest == NULL) {
+        log_message(LOG_ERROR, "[DATABASE] Falha ao criar arquivo temporario %s para atualizacao.", temp_filepath);
         fclose(src);
         return 0;
     }
