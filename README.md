@@ -17,7 +17,7 @@
 
 # 🏗 Arquitetura do Sistema
 
-O projeto segue uma arquitetura em **duas camadas**, separando completamente a interface gráfica da lógica de negócio.
+O projeto segue uma arquitetura em **duas camadas**, separando a interface gráfica da lógica de negócio.
 
 ## 🎨 Front-End
 
@@ -59,7 +59,7 @@ src/dentist.c
 src/patient.c
 ```
 
-### Responsabilidades
+### Funções
 
 * ✔️ Validação dos dados recebidos
 * ✔️ Processamento das informações clínicas
@@ -165,10 +165,29 @@ $(pkg-config --cflags --libs gtk4)
 ---
 
 # 🔄 Fluxo de Utilização
-
-O sistema foi desenvolvido para oferecer um fluxo contínuo durante os atendimentos.
-
 ---
+## 🔑 0. Pré-requisito: Cadastro do Dentista (feito pelo Admin)
+
+Antes de um dentista conseguir fazer login, ele precisa ter sido cadastrado no sistema. Esse cadastro só pode ser feito por um usuário **Administrador**.
+
+### Login do Administrador
+
+O sistema já vem com um usuário admin criado automaticamente na primeira execução (`database_init()` cria esse usuário no `dentists.csv`).
+
+* **Usuário:** `admin`
+* **Senha:** `admin`
+
+### Cadastrando um novo Dentista
+
+Ao logar como admin, o menu de **Cadastrar Dentista** fica disponível (visível apenas para esse perfil). Preencha:
+
+- Nome
+- Usuário (login)
+- CPF
+- Senha
+
+➡ Clique em **Salvar**.
+
 
 ## 🔐 1. Login
 
@@ -177,17 +196,13 @@ O profissional informa:
 * Usuário
 * Senha
 
-A senha é mascarada automaticamente para maior segurança.
-
 ➡ Clique em **Entrar**.
 
 ---
 
 ## 📊 2. Dashboard
 
-Após a autenticação é exibido o painel principal.
-
-Opções disponíveis:
+Após a autenticação é exibido o painel principal com as opções:
 
 * 📁 Consultar Prontuários
 * 👥 Cadastrar Novo Paciente
@@ -222,15 +237,8 @@ o sistema:
 
 ## 🧠 4. Pré-Diagnóstico
 
-Nesta etapa são preenchidos os parâmetros clínicos utilizados pela árvore de decisão ortodôntica.
-
-Entre eles:
-
-* Ângulo ANB
-* Comprimento COA
-* Comportamento da Maxila
-* Relação Mandibular
-* Demais parâmetros clínicos
+Nesta etapa são preenchidos os parâmetros clínicos coletados nos exames que serão utilizados pela árvore de decisão ortodôntica.
+Lembrar de utilizar pontos ao invés de vírgulas nos números decimais.
 
 Após o preenchimento:
 
@@ -247,9 +255,6 @@ O sistema executa toda a lógica clínica e apresenta o resultado em um componen
 ```text
 GtkFrame
 ```
-
-O laudo é exibido em uma moldura estilizada contendo o diagnóstico calculado automaticamente.
-
 ---
 
 ## ♻️ 6. Novo Atendimento
@@ -266,8 +271,6 @@ Ao clicar:
 * 🗑 A memória temporária é reinicializada
 * 👤 Um novo paciente pode ser cadastrado imediatamente
 
-Esse fluxo reduz significativamente o tempo entre atendimentos.
-
 ---
 
 ## ⬅️ Retorno ao Painel
@@ -277,9 +280,6 @@ Em qualquer momento é possível interromper o cadastro clicando em:
 ```text
 ⬅ Voltar
 ```
-
-O usuário retorna com segurança ao Dashboard principal.
-
 ---
 
 # 📂 Estrutura do Projeto
@@ -367,8 +367,3 @@ Desenvolvimento
 </tr>
 </table>
 
----
-
-# 📌 Observações
-
-Este projeto foi desenvolvido como uma ferramenta de apoio ao atendimento odontológico, integrando uma interface gráfica moderna com uma lógica de decisão clínica capaz de auxiliar profissionais durante o processo de triagem e elaboração de pré-diagnósticos ortodônticos.
