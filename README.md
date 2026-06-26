@@ -240,9 +240,7 @@ o sistema:
 Nesta etapa são preenchidos os parâmetros clínicos coletados nos exames que serão utilizados pela árvore de decisão ortodôntica.
 Lembrar de utilizar pontos ao invés de vírgulas nos números decimais.
 
-Após o preenchimento:
-
-Clique em
+Após o preenchimento, clique em:
 
 **🧠 Gerar Pré-Diagnóstico**
 
