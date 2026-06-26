@@ -15,7 +15,7 @@ LDFLAGS = -lgdi32 -luser32 -lkernel32 $(GTK_LIBS)
 
 # Para ocultar o prompt de comando (console) ao rodar a janela principal,
 # descomente a linha abaixo (adicione -mwindows):
-# LDFLAGS += -mwindows
+LDFLAGS += -mwindows
 
 # Diretórios
 SRC_DIR = src
@@ -37,7 +37,7 @@ TEST_TARGET = $(BIN_DIR)/testes.exe
 APP_OBJS = $(filter-out $(OBJ_DIR)/main.o, $(OBJS))
 
 # Regras .PHONY
-.PHONY: all clean run test
+.PHONY: all clean run test dist
 
 # Regra principal (compila o programa)
 all: $(TARGET)
@@ -88,4 +88,3 @@ clean:
 run: all
 	@echo [RUNNING] Executando o aplicativo...
 	@$(TARGET)
-

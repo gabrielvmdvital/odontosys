@@ -20,6 +20,9 @@ int main(void) {
     // Alimenta a semente do gerador de números aleatórios com o tempo atual
     srand(time(NULL)); // time obtém o timestamp atual do sistema
     
+    // Inicializa o sistema de logs com o arquivo nomeado com data/hora
+    init_logger();
+
     // Garante que a pasta e os arquivos CSV existam e possuam seus respectivos cabeçalhos
     database_init();
 
@@ -45,6 +48,9 @@ int main(void) {
     
     // Quando o loop principal do GTK é encerrado (janela fechada), o fluxo continua aqui
     log_message(LOG_INFO, "[SISTEMA] Programa encerrado com sucesso.");
+    
+    // Fecha o arquivo de logs
+    close_logger();
     
     // Retorna 0 para o SO indicando execução normal
     return 0;

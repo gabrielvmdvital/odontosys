@@ -32,10 +32,9 @@ void get_timestamp(char *buffer, size_t size);
 /**
  * @brief Inicializa o sistema de logs, criando a pasta 'logs' se ela não existir e abrindo o arquivo de saída.
  * 
- * @param filename Nome do arquivo de log com o caminho (ex: "logs/app.log"). Passar NULL se desejar apenas saída no console.
  * @return Retorna 1 se o logger foi inicializado com sucesso ou 0 caso falhe ao abrir o arquivo.
  */
-int init_logger(const char *filename);
+int init_logger(void);
 
 /**
  * @brief Encerra o sistema de logs fechando o descritor de arquivo aberto.

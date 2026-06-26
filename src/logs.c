@@ -33,20 +33,25 @@ void get_timestamp(char *buffer, size_t size) {
 }
 
 // Inicializa o sistema de logs
-int init_logger(const char *filename) {
-    if (filename != NULL) {
-        // Verifica se o caminho base usa o diretorio padrao "logs"
-        if (strstr(filename, "logs/") == filename || strstr(filename, "logs\\") == filename) {
-            // Garante que o diretorio exista antes de iniciar o log
-            CreateDirectoryA("logs", NULL);
-        }
+int init_logger(void) {
+    char filename[100];
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    
+    // Garante que o diretorio exista antes de iniciar o log
+    CreateDirectoryA("logs", NULL);
+    
+    if (t != NULL) {
+        strftime(filename, sizeof(filename), "logs/logs_%d%m%Y_%H%M%S.txt", t);
+    } else {
+        strncpy(filename, "logs/logs_default.txt", sizeof(filename));
+    }
 
-        // Abre o arquivo de log no modo de adicao para nao sobrescrever registros anteriores
-        log_file = fopen(filename, "a"); // fopen abre um arquivo
-        if (!log_file) {
-            perror("Falha ao abrir arquivo de log");
-            return 0;
-        }
+    // Abre o arquivo de log no modo de adicao para nao sobrescrever registros anteriores
+    log_file = fopen(filename, "a"); // fopen abre um arquivo
+    if (!log_file) {
+        perror("Falha ao abrir arquivo de log");
+        return 0;
     }
     return 1;
 }

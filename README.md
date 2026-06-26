@@ -25,6 +25,7 @@ O projeto segue uma arquitetura em **duas camadas**, separando a interface gráf
 
 ```text
 src/gui.c
+src/gui/*
 ```
 
 Responsável por toda a interface gráfica do sistema utilizando a biblioteca **GTK4**.
@@ -161,6 +162,21 @@ $(pkg-config --cflags --libs gtk4)
 ```bash
 ./odontosys_app.exe
 ```
+
+---
+
+## 📦 Geração da Build para Distribuição
+
+Para gerar uma versão final pronta para distribuição em computadores que não possuem o ambiente MSYS2 configurado:
+
+1. **Compile o executável** garantindo que as dependências estejam vinculadas corretamente (o `Makefile` facilita esse processo, use `mingw32-make`).
+2. **Execute o script de empacotamento** via PowerShell. Ele copiará o executável e todas as DLLs e assets do GTK necessários:
+   ```powershell
+   .\scripts\package_dist.ps1
+   ```
+   *Isto criará a pasta `dist/OdontoSys` com todos os arquivos isolados.*
+3. **Gere o instalador** utilizando o [Inno Setup](https://jrsoftware.org/isinfo.php). Abra o arquivo `odontosys_setup.iss` no aplicativo Inno Setup e clique no botão **Compile**.
+   *O arquivo do instalador final (ex: `Instalador_OdontoSys_v1.0.exe`) será gerado na raiz do projeto!*
 
 ---
 
@@ -313,6 +329,7 @@ odontosys/
 | GCC        | Compilador                  |
 | MSYS2      | Ambiente de desenvolvimento |
 | UCRT64     | Toolchain para Windows      |
+| Make       | Gerenciador de compilação   |
 
 ---
 
